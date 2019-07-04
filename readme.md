@@ -49,3 +49,7 @@ To decode the data packet sent by this firmware, add the following emonhub node 
 ### Further Development
 
 Serial configuration currently supports configuration of the RFM radio and current & voltage channels. Serial configuration of temperature sensors, pulse input and data log period is currently disabled. See commented sections of code. Further work and testing is required to enable these features.
+
+### Licence
+
+This firmware example is open source, licenced under GNU General Public License v3.0.
