@@ -1,4 +1,4 @@
-# EmonTxV3 Continuous Monitoring Firmware
+# EmonTxV3 Continuous Monitoring Firmware (beta)
 
 The following EmonTxV3 continuous monitoring firmware is based on the EmonLibCM library maintained by @Robert.Wall available here: 
 
@@ -7,7 +7,28 @@ The following EmonTxV3 continuous monitoring firmware is based on the EmonLibCM 
 
 EmonTxV3CM provides better results than the [EmonTxV3 Discreet Sampling firmware](https://github.com/openenergymonitor/emontx3) which uses the emonLib library, especially where PV Diverters or other fast changing loads are in use. The EmonLibCM library continuously measures in the background the voltage and all the current input channels in turn and calculates a true average quantity for each.
 
-### EmonHub Decoder
+### Features
+
+- Continuous Monitoring on all four EmonTxV3 CT channels and ACAC Voltage input channel.
+- Real power (Watts) and cumulative energy (Watt-hours) measurement per CT channel.
+- RMS Voltage measurement.
+- Support for 3x DS18B20 temperature sensors.
+- Support for pulse counting.
+- Resulting readings transmitted via RFM radio and printed to serial.
+
+### How to use
+
+1. Either download directly or use 'git clone' to download this repository into a directory called EmonTxV3CM in your Arduino Sketchbook directory. Ensure that both EmonTxV3CM.ino **and** config.ino are in the same folder.
+
+2. Either download directly or use 'git clone' to download the [EmonLibCM library](https://github.com/openenergymonitor/EmonLibCM) into your Arduino Libraries directory.
+
+3. Either download directly or use 'git clone' to download the [JeeLib library](https://github.com/jcw/jeelib) into your Arduino Libraries directory. 
+
+4. Open the Arduino IDE (or restart, to reload the libraries). Open the EmonTxV3CM firmware, ensure that both EmonTxV3CM.ino **and** config.ino are present as two tabs in the IDE when the firmware is open.
+
+5. Use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx. 
+
+#### EmonHub Decoder
 
 To decode the data packet sent by this firmware, add the following emonhub node configuration to /etc/emonhub/emonhub.conf (configurable via the web interface on an EmonBase or EmonPi). 
 
@@ -21,3 +42,6 @@ To decode the data packet sent by this firmware, add the following emonhub node 
         scales = 1,0.01,1,1,1,1,1,1,1,1,0.01,0.01,0.01,1
         units = n,V,W,W,W,W,Wh,Wh,Wh,Wh,C,C,C,p
         whitening = 1
+
+### Further Development
+
