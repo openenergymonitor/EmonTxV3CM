@@ -31,6 +31,8 @@ EmonTxV3CM provides better results than the [EmonTxV3 Discreet Sampling firmware
 
 6. Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting.
 
+**Todo:** PlatformIO compilation and upload instructions.
+
 #### EmonHub Decoder
 
 To decode the data packet sent by this firmware, add the following emonhub node configuration to /etc/emonhub/emonhub.conf (configurable via the web interface on an EmonBase or EmonPi). 
