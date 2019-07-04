@@ -15,6 +15,7 @@ EmonTxV3CM provides better results than the [EmonTxV3 Discreet Sampling firmware
 - Support for 3x DS18B20 temperature sensors.
 - Support for pulse counting.
 - Resulting readings transmitted via RFM radio and printed to serial.
+- Serial configuration of RFM radio and calibration values.
 
 ### How to use
 
@@ -26,7 +27,9 @@ EmonTxV3CM provides better results than the [EmonTxV3 Discreet Sampling firmware
 
 4. Open the Arduino IDE (or restart, to reload the libraries). Open the EmonTxV3CM firmware, ensure that both EmonTxV3CM.ino **and** config.ino are present as two tabs in the IDE when the firmware is open.
 
-5. Use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx. 
+5. Use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx.
+
+6. Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting.
 
 #### EmonHub Decoder
 
@@ -45,3 +48,4 @@ To decode the data packet sent by this firmware, add the following emonhub node 
 
 ### Further Development
 
+Serial configuration currently supports configuration of the RFM radio and current & voltage channels. Serial configuration of temperature sensors, pulse input and data log period is currently disabled. See commented sections of code. Further work and testing is required to enable these features.
