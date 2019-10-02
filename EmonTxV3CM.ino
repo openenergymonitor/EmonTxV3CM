@@ -16,8 +16,8 @@ emonhub.conf node decoder (nodeid is 8 when switch is off, 9 when switch is on)
 See: https://github.com/openenergymonitor/emonhub/blob/emon-pi/configuration.md
 copy the following in to emonhub.conf:
 
-[[8]]
-  nodename = emontx8
+[[15]]
+  nodename = EmonTxV3CM_15
   [[[rx]]]
     names = MSG, Vrms, P1, P2, P3, P4, E1, E2, E3, E4, T1, T2, T3, pulse
     datacodes = L,h,h,h,h,h,L,L,L,L,h,h,h,L
@@ -45,7 +45,7 @@ const byte version = 1;                                 // Firmware version divi
 // ISR(WDT_vect) { Sleepy::watchdogEvent(); } 
 
 byte RF_freq = RF12_433MHZ;                             // Frequency of radio module can be RF12_433MHZ, RF12_868MHZ or RF12_915MHZ. 
-byte nodeID = 8;                                        // node ID for this emonTx.
+byte nodeID = 15;                                        // node ID for this emonTx.
 int networkGroup = 210;                                 // wireless network group, needs to be same as emonBase / emonPi and emonGLCD. OEM default is 210
 
 typedef struct {
