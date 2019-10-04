@@ -29,7 +29,7 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 
 
-const byte version = 1;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 11;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
 #define ENABLE_RF                                       // Enable RF69 transmit, turn off if using direct serial, or EmonESP 
