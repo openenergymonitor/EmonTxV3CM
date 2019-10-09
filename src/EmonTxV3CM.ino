@@ -29,10 +29,10 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 
 
-const byte version = 11;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 12;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
-#define ENABLE_RF                                       // Enable RF69 transmit, turn off if using direct serial, or EmonESP 
+#define ENABLE_RF                                       // Enable RF69 transmit, turn off if using direct serial, or EmonESP
 #define RF_WHITENING                                    // Improves rfm reliability
 #define PRINT_DATA                                      // Print data in Key:Value format to serial, used by EmonESP & emonhub EmonHubTx3eInterfacer
 // #define DEBUG                                        // Debug level print out
@@ -42,16 +42,16 @@ const byte version = 11;                                 // Firmware version div
 
 #include "emonLibCM.h"
 #include <JeeLib.h>                                     // https://github.com/jcw/jeelib - Tested with JeeLib 10 April 2017
-// ISR(WDT_vect) { Sleepy::watchdogEvent(); } 
+// ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
-byte RF_freq = RF12_433MHZ;                             // Frequency of radio module can be RF12_433MHZ, RF12_868MHZ or RF12_915MHZ. 
+byte RF_freq = RF12_433MHZ;                             // Frequency of radio module can be RF12_433MHZ, RF12_868MHZ or RF12_915MHZ.
 byte nodeID = 15;                                        // node ID for this emonTx.
 int networkGroup = 210;                                 // wireless network group, needs to be same as emonBase / emonPi and emonGLCD. OEM default is 210
 
 typedef struct {
     unsigned long Msg;
-    int Vrms,P1,P2,P3,P4; 
-    unsigned long E1,E2,E3,E4; 
+    int Vrms,P1,P2,P3,P4;
+    unsigned long E1,E2,E3,E4;
     int T1,T2,T3;
     unsigned long pulse;
 } PayloadTX;
@@ -60,8 +60,8 @@ static void showString (PGM_P s);
  
 DeviceAddress allAddresses[3];                          // Array to receive temperature sensor addresses
 /* Example - how to define temperature sensors, prevents an automatic search
-DeviceAddress allAddresses[3] = {       
-    {0x28, 0x81, 0x43, 0x31, 0x7, 0x0, 0x0, 0xD9}, 
+DeviceAddress allAddresses[3] = {
+    {0x28, 0x81, 0x43, 0x31, 0x7, 0x0, 0x0, 0xD9},
     {0x28, 0x8D, 0xA5, 0xC7, 0x5, 0x0, 0x0, 0xD5},      // Use the actual addresses, as many as required
     {0x28, 0xC9, 0x58, 0x32, 0x7, 0x0, 0x0, 0x89}       // up to a maximum of 6
 };
@@ -94,8 +94,8 @@ bool CT1, CT2, CT3, CT4; // Record if CT present during startup
 unsigned long start = 0;
 
 //----------------------------------------Setup--------------------------------------------------
-void setup() 
-{  
+void setup()
+{
   pinMode(LEDpin, OUTPUT);
   digitalWrite(LEDpin,HIGH);
   
@@ -122,7 +122,7 @@ void setup()
   
   #ifdef ENABLE_RF
     #ifdef DEBUG
-      #if (RF69_COMPAT) 
+      #if (RF69_COMPAT)
         Serial.print(F("RFM69CW"));
       #else
         Serial.print(F("RFM12B"));
@@ -150,7 +150,6 @@ void setup()
   // ---------------------------------------------------------------------------------------
   #ifdef ENABLE_RF
     rf12_initialize(nodeID, RF_freq, networkGroup);                       // initialize RFM12B/rfm69CW
-    /*
     for (int i=10; i>=0; i--)                                             // Send RF test sequence (for factory testing)
     {
       emontx.P1=i;
@@ -166,7 +165,6 @@ void setup()
     }
     rf12_sendWait(2);
     emontx.P1=0;
-    */
   #endif
   
   // ---------------------------------------------------------------------------------------
@@ -199,7 +197,7 @@ void setup()
   EmonLibCM_ADCCal(3.3);                                   // ADC Reference voltage, (3.3 V for emonTx,  5.0 V for Arduino)
   // mains frequency 50Hz
   if (USA) EmonLibCM_cycles_per_second(60);                // mains frequency 60Hz
-  EmonLibCM_datalog_period(10);                            // period of readings in seconds - normal value for emoncms.org  
+  EmonLibCM_datalog_period(10);                            // period of readings in seconds - normal value for emoncms.org
 
   EmonLibCM_setPulseEnable(true);                          // Enable pulse counting
   EmonLibCM_setPulsePin(3, 1);
@@ -212,17 +210,17 @@ void setup()
   EmonLibCM_setTemperatureArray(allTemps);                 // Name of array to receive temperature measurements
   EmonLibCM_setTemperatureMaxCount(3);                     // Max number of sensors, limited by wiring and array size.
   
-  EmonLibCM_TemperatureEnable(true);  
+  EmonLibCM_TemperatureEnable(true);
   EmonLibCM_Init();                                        // Start continuous monitoring.
   emontx.Msg = 0;
   
 }
 
-void loop()             
+void loop()
 {
   getCalibration();
   
-  if (EmonLibCM_Ready())   
+  if (EmonLibCM_Ready())
   {
     #ifdef DEBUG
     if (emontx.Msg==0) {
@@ -240,8 +238,8 @@ void loop()
     
     int CT_index = 0;
     if (CT1) {
-      emontx.P1 = EmonLibCM_getRealPower(CT_index); 
-      emontx.E1 = EmonLibCM_getWattHour(CT_index); 
+      emontx.P1 = EmonLibCM_getRealPower(CT_index);
+      emontx.E1 = EmonLibCM_getWattHour(CT_index);
       CT_index++;
     } else {
       emontx.P1 = 0;
@@ -249,8 +247,8 @@ void loop()
     }
 
     if (CT2) {
-      emontx.P2 = EmonLibCM_getRealPower(CT_index); 
-      emontx.E2 = EmonLibCM_getWattHour(CT_index); 
+      emontx.P2 = EmonLibCM_getRealPower(CT_index);
+      emontx.E2 = EmonLibCM_getWattHour(CT_index);
       CT_index++;
     } else {
       emontx.P2 = 0;
@@ -258,8 +256,8 @@ void loop()
     }
     
     if (CT3) {
-      emontx.P3 = EmonLibCM_getRealPower(CT_index); 
-      emontx.E3 = EmonLibCM_getWattHour(CT_index); 
+      emontx.P3 = EmonLibCM_getRealPower(CT_index);
+      emontx.E3 = EmonLibCM_getWattHour(CT_index);
       CT_index++;
     } else {
       emontx.P3 = 0;
@@ -267,8 +265,8 @@ void loop()
     }
     
     if (CT4) {
-      emontx.P4 = EmonLibCM_getRealPower(CT_index); 
-      emontx.E4 = EmonLibCM_getWattHour(CT_index); 
+      emontx.P4 = EmonLibCM_getRealPower(CT_index);
+      emontx.E4 = EmonLibCM_getWattHour(CT_index);
       CT_index++;
     } else {
       emontx.P4 = 0;
@@ -327,7 +325,7 @@ void loop()
       if (emontx.T2!=30000) { Serial.print(F(",T2:")); Serial.print(emontx.T2*0.01); }
       if (emontx.T3!=30000) { Serial.print(F(",T3:")); Serial.print(emontx.T3*0.01); }
   
-      Serial.print(F(",pulse:")); Serial.println(emontx.pulse);  
+      Serial.print(F(",pulse:")); Serial.println(emontx.pulse);
       delay(20);
     #endif
     // End of print out ----------------------------------------------------
