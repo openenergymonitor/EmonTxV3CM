@@ -35,7 +35,7 @@ const byte version = 12;                                 // Firmware version div
 #define ENABLE_RF                                       // Enable RF69 transmit, turn off if using direct serial, or EmonESP
 #define RF_WHITENING                                    // Improves rfm reliability
 #define PRINT_DATA                                      // Print data in Key:Value format to serial, used by EmonESP & emonhub EmonHubTx3eInterfacer
-// #define DEBUG                                        // Debug level print out
+#define DEBUG                                        // Debug level print out
 // #define SHOW_CAL                                     // Uncomment to show current for calibration
 
 #define RF69_COMPAT 1                                   // Set to 1 if using RFM69CW, or 0 if using RFM12B
