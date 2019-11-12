@@ -165,7 +165,9 @@ void readInput(void)
 {
   Serial.println(F("POST.....wait 10s"));
   Serial.println(F("'+++' then [Enter] for config mode"));
-    
+  
+  wdt_reset();
+  
   unsigned long start = millis();
   bool done = false;
   while (millis() < (start + 10000))
@@ -185,9 +187,15 @@ void readInput(void)
           {
             done = config(Serial.read());
           }
+          
+          delay(100);
+          wdt_reset(); 
         }
       }
     }
+    
+    delay(100);
+    wdt_reset();
   }
 }
 
