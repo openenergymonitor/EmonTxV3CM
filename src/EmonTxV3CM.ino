@@ -10,7 +10,10 @@
 
 /*
 Change Log:
-v0.1: First version, combination of EmonTxV3CM_max and EmonTx v3 original firmware
+v1.0: First release of EmonTxV3 Continuous Monitoring Firmware.
+v1.1: First stable release, Set default node to 15
+v1.2: Enable RF startup test sequence (factory testing), Enable DEBUG by default to support EmonESP
+v1.3: Inclusion of watchdog
 
 emonhub.conf node decoder (nodeid is 8 when switch is off, 9 when switch is on)
 See: https://github.com/openenergymonitor/emonhub/blob/emon-pi/configuration.md
@@ -29,7 +32,7 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 #include <avr/wdt.h>
 
-const byte version = 12;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 13;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
 #define ENABLE_RF                                       // Enable RF69 transmit, turn off if using direct serial, or EmonESP
