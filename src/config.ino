@@ -32,7 +32,8 @@ const PROGMEM char helpText1[] =
 "Available commands for config during start-up:\n"
 "  <nnn>g    - set Network Group\n"
 "  <nn>i     - set node ID (standard node ids are 1..30)\n"
-"  r         - restore sketch defaults\n"
+"  <n>b      - set MHz band (4 = 433, 8 = 868, 9 = 915)\n"
+"  r         - restore defaults (erase EEPROM)\n"
 "  s         - save config to EEPROM\n"
 "  v         - Show firmware version\n"
 "  x         - exit and continue\n"
@@ -68,34 +69,49 @@ extern DeviceAddress *temperatureSensors;
 static void load_config(bool verbose)
 {
   byte* src = (byte *)&data;
-  bool dataPresent = (EEPROM.read(0) != 255);
- 
-  if (dataPresent)
+  byte flag=0;
+
+  bool dataPresent = false;
+  for (byte j=0; j<sizeof(data); j++) {
+    // Check each EEPROM memory location for data, 255 = no data present
+    // If data present then increment flag
+    if ((EEPROM.read(j) != 255)) flag ++;
+    // Serial.print(EEPROM.read(j));
+    // Serial.print(" ");
+    // Serial.println(flag);
+    
+    // Check if EEPROM data matches the expected sizeof data, if not ignore config since this could be for emonTx V3
+    if (flag == sizeof(data)) dataPresent = true;
+  }
+
+  if (dataPresent == true)
   {
+    Serial.print(F("Loading EEPROM config..."));
     for (byte j=0; j<sizeof(data); j++, src++)
           *src = EEPROM.read(j); 
+    
+    // Sanity check before loading saved value, nodeID should never be zero
+    if (data.nodeID!=0)       nodeID = data.nodeID;
+    if (data.RF_freq!=0)      RF_freq = data.RF_freq;
+    if (data.networkGroup!=0) networkGroup = data.networkGroup;
+    if (data.vCal!=0)         vCal = data.vCal;
+    if (data.i1Cal!=0)        i1Cal= data.i1Cal;
+    if (data.i1Lead!=0)       i1Lead = data.i1Lead;
+    if (data.i2Cal!=0)        i2Cal = data.i2Cal;
+    if (data.i2Lead!=0)       i2Lead = data.i2Lead;
+    if (data.i3Cal!=0)        i3Cal = data.i3Cal;
+    if (data.i3Lead!=0)       i3Lead = data.i3Lead; 
+    if (data.i4Cal!=0)        i4Cal = data.i4Cal; 
+    if (data.i4Lead!=0)       {i4Lead = data.i4Lead;} 
+    else {
+      Serial.println(F("ERROR EEPROM config invalid...using default values"));
+    }
 
-    nodeID       = data.nodeID;
-    // RF_freq      = data.RF_freq;
-    networkGroup = data.networkGroup;
-    vCal         = data.vCal;
-    i1Cal        = data.i1Cal;
-    i1Lead       = data.i1Lead;
-    i2Cal        = data.i2Cal;
-    i2Lead       = data.i2Lead;
-    i3Cal        = data.i3Cal;
-    i3Lead       = data.i3Lead; 
-    i4Cal        = data.i4Cal; 
-    i4Lead       = data.i4Lead;
   }    
   
   if (verbose)
   {
-    if (dataPresent) {
-      Serial.println(F("Loaded EEPROM config"));
-    } else { 
-      Serial.println(F("No EEPROM config"));
-    }
+
     list_calibration();
   }    
 }
@@ -113,7 +129,7 @@ static void list_calibration(void)
   Serial.print(F("i4Cal = ")); Serial.println(i4Cal);
   Serial.print(F("i4Lead = ")); Serial.println(i4Lead);
   
-  printTemperatureSensorAddresses();
+  //printTemperatureSensorAddresses();
 }
 
 static void save_config()
@@ -123,7 +139,7 @@ static void save_config()
   //Save new settings
   byte* src = (byte*) &data;
   data.nodeID       = nodeID;  
-  // data.RF_freq   = RF_freq;
+  data.RF_freq      = RF_freq;
   data.networkGroup = networkGroup;
   data.vCal         = vCal;
   data.i1Cal        = i1Cal;
@@ -134,26 +150,27 @@ static void save_config()
   data.i3Lead       = i3Lead; 
   data.i4Cal        = i4Cal; 
   data.i4Lead       = i4Lead;      
-  
+
   for (byte j=0; j<sizeof(data); j++, src++)
     EEPROM[j] = *src;    
 
   for (byte j=0; j<sizeof(data); j++)
     Serial.print(EEPROM[j]);Serial.print(" ");
-  
-  Serial.println(F("Done. New config saved to EEPROM"));
+  Serial.println("");
+  Serial.println(F("Done. New config saved to EEPROM. Resetting in 5s"));
+  delay(5000);
 }
 
 static void wipe_eeprom(void)
 {
   byte* src = (byte*)&data;
-  Serial.println(F("Resetting..."));
+  Serial.println(F("Erasing EEPROM..."));
   
   for (byte j=0; j<sizeof(data); j++)
     EEPROM[j] = 255;
     
-  Serial.println(F("Done. Sketch will now restart using default config."));
-  delay(200);
+  Serial.println(F("Done...emonTx will reset using default settings in 5s"));
+  delay(5000);
 }
 
 void softReset(void)
@@ -214,14 +231,19 @@ static bool config(char c)
         }
         Serial.print(F("[Node ")); Serial.print(nodeID & 0x1F); Serial.print(F("]"));
         break;
-/*
+
       case 'b': // set band: 4 = 433, 8 = 868, 9 = 915
         value = bandToFreq(value);
         if (value){
-          RF_FREQ = value;
+          RF_freq = value;
         }
+        Serial.print(F("[Freq: "));
+        if (RF_freq == RF12_433MHZ) Serial.print(F("433MHz"));
+        if (RF_freq == RF12_868MHZ) Serial.print(F("868MHz"));
+        if (RF_freq == RF12_915MHZ) Serial.print(F("915MHz"));
+        Serial.print(F("]"));
         break;
-*/
+
       case 'g': // set network group
         if (value) // Group 0 is not valid when transmitting
           networkGroup = value;
@@ -239,6 +261,7 @@ static bool config(char c)
 
       case 's': // Save to EEPROM. Atemga328p has 1kB  EEPROM
         save_config();
+        softReset();
         break;
 
       case 'v': // print firmware version
@@ -428,11 +451,11 @@ void getCalibration(void)
   }
 }
 
-/*
+
 static byte bandToFreq (byte band) {
   return band == 4 ? RF12_433MHZ : band == 8 ? RF12_868MHZ : band == 9 ? RF12_915MHZ : 0;
 }
-*/
+
 
 static void showString (PGM_P s) {
   for (;;) {

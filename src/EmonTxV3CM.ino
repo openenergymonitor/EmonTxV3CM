@@ -118,7 +118,7 @@ void setup()
     Serial.println(F("describe:EmonTX3CM"));
   #endif
   
-  load_config(false);                                                        // Load RF config from EEPROM (if any exists)
+  load_config(true);                                                     // Load RF config from EEPROM  true = verbose 
   
   #ifdef ENABLE_RF
     #ifdef DEBUG
