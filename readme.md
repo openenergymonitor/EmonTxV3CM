@@ -1,5 +1,5 @@
 
-# EmonTxV3 Continuous Monitoring Firmware (beta)
+# EmonTxV3 Continuous Monitoring Firmware
 
 The following EmonTxV3 continuous monitoring firmware is based on the EmonLibCM library maintained by @Robert.Wall available here: 
 
