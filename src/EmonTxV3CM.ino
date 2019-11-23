@@ -44,7 +44,7 @@ const byte version = 14;                                 // Firmware version div
 #define RF69_COMPAT 1                                   // Set to 1 if using RFM69CW, or 0 if using RFM12B
 
 #include "emonLibCM.h"
-#include <JeeLib.h>                                     // https://github.com/jcw/jeelib - Tested with JeeLib 10 April 2017
+#include <JeeLib.h>                                     // https://github.com/jcw/jeelib
 // ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
 byte RF_freq = RF12_433MHZ;                             // Frequency of radio module can be RF12_433MHZ, RF12_868MHZ or RF12_915MHZ.
@@ -87,7 +87,7 @@ bool USA=false;
 //----------------------------emonTx V3 hard-wired connections-----------------------------------
 const byte LEDpin      = 6;  // emonTx V3 LED
 const byte DS18B20_PWR = 19; // DS18B20 Power
-const byte DIP_switch1 = 8;  // RF node ID (default no chance in node ID, switch on for nodeID -1) switch off D8 is HIGH from internal pullup
+const byte DIP_switch1 = 8;  // RF node ID (default no chance in node ID, switch on for nodeID +1) switch off D8 is HIGH from internal pullup
 const byte DIP_switch2 = 9;  // Voltage selection 240 / 110 V AC (default switch off 240V)  - switch off D9 is HIGH from internal pullup
 
 //---------------------------------CT availability status----------------------------------------
@@ -114,7 +114,7 @@ void setup()
   Serial.begin(115200);
   
   // ---------------------------------------------------------------------------------------
-  if (digitalRead(DIP_switch1)==LOW) nodeID++;                            // IF DIP switch 1 is switched on (LOW) then add 1 from nodeID
+  if (digitalRead(DIP_switch1)==LOW) nodeID++;                            // IF DIP switch 1 is switched on (LOW) then add 1 to nodeID
 
   #ifdef DEBUG
     Serial.print(F("emonTx V3.4 EmonLibCM Continuous Monitoring V")); Serial.println(version*0.1);
@@ -123,7 +123,7 @@ void setup()
     Serial.println(F("describe:EmonTX3CM"));
   #endif
   
-  load_config(true);                                                     // Load RF config from EEPROM  true = verbose 
+  load_config(true);                                                     // Load RF config from EEPROM  true = verbose
   
   #ifdef ENABLE_RF
     #ifdef DEBUG
@@ -142,8 +142,13 @@ void setup()
     #endif
   #endif
   
+  readInput();                                                          // option to enter config mode e.g +++ [Enter]
+  
   // Read status of USA calibration DIP switch----------------------------------------------
-  if (digitalRead(DIP_switch2)==LOW) USA=true;                            // IF DIP switch 2 is switched on then activate USA mode
+  if (digitalRead(DIP_switch2)==LOW) {
+    USA=true;                            // IF DIP switch 2 is switched on then activate USA mode
+    Serial.print(F("USA Vcal active: ")); Serial.println(vCal_USA);
+  }
 
   // Check connected CT sensors ------------------------------------------------------------
   if (analogRead(1) > 0) {CT1 = 1; CT_count++;} else CT1=0;               // check to see if CT is connected to CT1 input, if so enable that channel
@@ -154,6 +159,7 @@ void setup()
 
   // ---------------------------------------------------------------------------------------
   #ifdef ENABLE_RF
+    Serial.println(F("RFM int..."));
     rf12_initialize(nodeID, RF_freq, networkGroup);                       // initialize RFM12B/rfm69CW
     for (int i=10; i>=0; i--)                                             // Send RF test sequence (for factory testing)
     {
@@ -174,9 +180,8 @@ void setup()
   
   // ---------------------------------------------------------------------------------------
   
-  readInput();
-  digitalWrite(LEDpin,LOW);
 
+  digitalWrite(LEDpin,LOW);
   #ifdef DEBUG
     if (CT_count==0) {
       Serial.println(F("NO CT's detected"));

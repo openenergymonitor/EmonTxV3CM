@@ -27,7 +27,7 @@ Byte
 #include <EEPROM.h>
 
  // Available Serial Commands
-const PROGMEM char helpText1[] =                                
+const PROGMEM char helpText1[] =
 "\n"
 "Available commands for config during start-up:\n"
 "  <nnn>g    - set Network Group\n"
@@ -49,7 +49,7 @@ const PROGMEM char helpText1[] =
 "  l         - list the config values\n"
 //"  m<x> <yy> - meter pulse counting:\n"
 //"              x = 0 for OFF, x = 1 for ON, <yy> = an integer for the pulse minimum period in ms. (y is not needed, or ignored when x = 0)\n"
-//"  p <xx.x>  - xx.x = a floating point number for the datalogging period" 
+//"  p <xx.x>  - xx.x = a floating point number for the datalogging period"
 "  s         - save config to EEPROM\n"
 //"  t0 <y>    - turn temperature measurement on or off:\n"
 //"            - y = 0 for OFF, y = 1 for ON\n"
@@ -88,33 +88,34 @@ static void load_config(bool verbose)
   {
     Serial.print(F("Loading EEPROM config..."));
     for (byte j=0; j<sizeof(data); j++, src++)
-          *src = EEPROM.read(j); 
+          *src = EEPROM.read(j);
     
-    // Sanity check before loading saved value, nodeID should never be zero
-    if (data.nodeID!=0)       nodeID = data.nodeID;
-    if (data.RF_freq!=0)      RF_freq = data.RF_freq;
-    if (data.networkGroup!=0) networkGroup = data.networkGroup;
-    if (data.vCal!=0)         vCal = data.vCal;
-    if (data.i1Cal!=0)        i1Cal= data.i1Cal;
-    if (data.i1Lead!=0)       i1Lead = data.i1Lead;
-    if (data.i2Cal!=0)        i2Cal = data.i2Cal;
-    if (data.i2Lead!=0)       i2Lead = data.i2Lead;
-    if (data.i3Cal!=0)        i3Cal = data.i3Cal;
-    if (data.i3Lead!=0)       i3Lead = data.i3Lead; 
-    if (data.i4Cal!=0)        i4Cal = data.i4Cal; 
-    if (data.i4Lead!=0)       {i4Lead = data.i4Lead;} 
-    else {
-      Serial.println(F("ERROR EEPROM config invalid...using default values"));
-    }
-
-  }    
+    // Sanity check before loading saved values, none should be zero
+    if ((data.nodeID!=0)&&(data.RF_freq!=0)&&(data.networkGroup!=0)&&(data.vCal!=0)&&(data.i1Cal!=0)&&(data.i1Lead!=0)&&(data.i2Cal!=0)&&(data.i2Lead!=0)&&(data.i3Cal!=0)&&(data.i3Lead!=0)&&(data.i4Cal!=0)&&(data.i4Lead!=0)){
+      
+      nodeID = data.nodeID;
+      RF_freq = data.RF_freq;
+      networkGroup = data.networkGroup;
+      vCal = data.vCal;
+      i1Cal= data.i1Cal;
+      i1Lead = data.i1Lead;
+      i2Cal = data.i2Cal;
+      i2Lead = data.i2Lead;
+      i3Cal = data.i3Cal;
+      i3Lead = data.i3Lead;
+      i4Cal = data.i4Cal;
+      
+      i4Lead = data.i4Lead;
+    } else Serial.println(F("ERROR EEPROM config invalid...using default values"));
+    
+  } else Serial.println(F("No EEPROM setting found...using default values"));
   
   if (verbose)
   {
 
     list_calibration();
-  }    
-}
+  }
+} // end_load config
 
 static void list_calibration(void)
 {
@@ -138,7 +139,7 @@ static void save_config()
 
   //Save new settings
   byte* src = (byte*) &data;
-  data.nodeID       = nodeID;  
+  data.nodeID       = nodeID;
   data.RF_freq      = RF_freq;
   data.networkGroup = networkGroup;
   data.vCal         = vCal;
@@ -147,17 +148,17 @@ static void save_config()
   data.i2Cal        = i2Cal;
   data.i2Lead       = i2Lead;
   data.i3Cal        = i3Cal;
-  data.i3Lead       = i3Lead; 
-  data.i4Cal        = i4Cal; 
-  data.i4Lead       = i4Lead;      
+  data.i3Lead       = i3Lead;
+  data.i4Cal        = i4Cal;
+  data.i4Lead       = i4Lead;
 
   for (byte j=0; j<sizeof(data); j++, src++)
-    EEPROM[j] = *src;    
+    EEPROM[j] = *src;
 
   for (byte j=0; j<sizeof(data); j++)
     Serial.print(EEPROM[j]);Serial.print(" ");
   Serial.println("");
-  Serial.println(F("Done. New config saved to EEPROM. Resetting in 5s"));
+  Serial.println(F("Done...new config saved to EEPROM. Resetting in 5s"));
   delay(5000);
 }
 
@@ -180,16 +181,15 @@ void softReset(void)
 
 void readInput(void)
 {
-  Serial.println(F("POST.....wait 10s"));
-  Serial.println(F("'+++' then [Enter] for config mode"));
+  Serial.println(F("'+++' then [Enter] now to enter config mode...5s"));
   
   wdt_reset();
   
   unsigned long start = millis();
   bool done = false;
-  while (millis() < (start + 10000))
+  while (millis() < (start + 5000))
   {
-    // If serial input of keyword string '+++' is entered during 10s POST then enter config mode
+    // If serial input of keyword string '+++' then enter config mode
     if (Serial.available())
     {
       if ( Serial.readString() == "+++\r\n")
@@ -206,7 +206,7 @@ void readInput(void)
           }
           
           delay(100);
-          wdt_reset(); 
+          wdt_reset();
         }
       }
     }
@@ -218,18 +218,18 @@ void readInput(void)
 
 
 
-static bool config(char c) 
+static bool config(char c)
 {
   
-  if ('0' <= c && c <= '9') 
+  if ('0' <= c && c <= '9')
   {
     value = 10 * value + c - '0';
     return false;
   }
 
-  if (c > ' ') 
+  if (c > ' ')
   {
-    switch (c) 
+    switch (c)
     {
       case 'i': //set node ID
 
@@ -305,7 +305,7 @@ static bool config(char c)
     */
     
     Serial.println(F(" "));
-  } 
+  }
   value = 0;
   return false;
 
@@ -317,26 +317,26 @@ void getCalibration(void)
 {
 /*
  * Reads calibration information (if available) from the serial port. Data is expected in the format
- * 
+ *
  *  k[x] [y] [z]
- * 
+ *
  * where:
  *  [x] = a single numeral: 0 = voltage calibration, 1 = ct1 calibration, 2 = ct2 calibration, etc
  *  [y] = a floating point number for the voltage/current calibration constant
  *  [z] = a floating point number for the phase calibration for this c.t. (z is not needed, or ignored if supplied, when x = 0)
- * 
+ *
  * e.g. k0 256.8
- *      k1 90.9 1.7 
- * 
+ *      k1 90.9 1.7
+ *
  * If power factor is not displayed, it is impossible to calibrate for phase errors,
  *  and the standard value of phase calibration MUST BE SENT when a current calibration is changed.
- * 
+ *
  */
 
 	if (Serial.available())
   {
-    int k1; 
-    double k2, k3; 
+    int k1;
+    double k2, k3;
     char c = Serial.peek();
     switch (c) {
       case 'f':
@@ -345,29 +345,29 @@ void getCalibration(void)
         */
         k1 = Serial.parseFloat();
         while (Serial.available())
-          Serial.read(); 
+          Serial.read();
         EmonLibCM_cycles_per_second(k1);
         break;
       
       case 'k':
         /*  Format expected: k[x] [y] [z]
-        * 
+        *
         * where:
         *  [x] = a single numeral: 0 = voltage calibration, 1 = ct1 calibration, 2 = ct2 calibration, etc
         *  [y] = a floating point number for the voltage/current calibration constant
         *  [z] = a floating point number for the phase calibration for this c.t. (z is not needed, or ignored if supplied, when x = 0)
-        * 
+        *
         * e.g. k0 256.8
-        *      k1 90.9 1.7 
-        * 
+        *      k1 90.9 1.7
+        *
         * If power factor is not displayed, it is impossible to calibrate for phase errors,
         *  and the standard value of phase calibration MUST BE SENT when a current calibration is changed.
         */
-        k1 = Serial.parseFloat(); 
-        k2 = Serial.parseFloat(); 
-        k3 = Serial.parseFloat(); 
+        k1 = Serial.parseFloat();
+        k2 = Serial.parseFloat();
+        k3 = Serial.parseFloat();
         while (Serial.available())
-          Serial.read(); 
+          Serial.read();
               
         // Write the values back as Globals, re-calculate intermediate values.
         switch (k1) {
@@ -406,16 +406,16 @@ void getCalibration(void)
       
       // case 'm' :
         /*  Format expected: m[x] [y]
-         * 
+         *
          * where:
          *  [x] = a single numeral: 0 = pulses OFF, 1 = pulses ON,
          *  [y] = an integer for the pulse min period in ms - ignored when x=0
          */
         /*
-        k1 = Serial.parseFloat(); 
-        k2 = Serial.parseFloat(); 
+        k1 = Serial.parseFloat();
+        k2 = Serial.parseFloat();
         while (Serial.available())
-          Serial.read(); 
+          Serial.read();
               
         switch (k1) {
           case 0 : EmonLibCM_setPulseEnable(false);
@@ -425,20 +425,20 @@ void getCalibration(void)
             EmonLibCM_setPulseEnable(true);
             break;
         }
-        break;        
+        break;
         */
         
       // case 'p':
         /*  Format expected: p[x]
-         * 
+         *
          * where:
          *  [x] = a floating point number for the datalogging period in s
          */
         /*
-        k2 = Serial.parseFloat(); 
+        k2 = Serial.parseFloat();
         while (Serial.available())
           Serial.read();
-        EmonLibCM_datalog_period(k2); 
+        EmonLibCM_datalog_period(k2);
         // save for EEPROM if required
         break;
         */
@@ -479,7 +479,7 @@ static void showString (PGM_P s) {
 void set_temperatures(void)
 {
   /*  Format expected: t[x] [y] [y] ...
-  * 
+  *
   * where:
   *  [x] = 0  [y] = single numeral: 0 = temperature measurement OFF, 1 = temperature measurement ON or OFF
   *  [x] = a single numeral > 0: the position of the sensor in the list (1-based)
@@ -492,7 +492,7 @@ void set_temperatures(void)
 	int k1 = Serial.parseFloat();
 
   if (k1 == 0)
-  { 
+  {
     EmonLibCM_TemperatureEnable(Serial.parseInt());
     // write to EEPROM
   }
@@ -503,33 +503,33 @@ void set_temperatures(void)
     byte i = 0, a, b;
     Serial.readBytes(&b,1);     // expect a leading space
     while (Serial.readBytes(&b,1) && i < 8)
-    {            
+    {
       if (b == ' ' || b == '\r' || b == '\n')
       {
         sensorAddress[i++] = a;
         a = 0;
-      }                
+      }
       else
       {
         a *= 16;
         a += c2h(b);
-      }          
-    }     
+      }
+    }
     // set address
     for (byte i=0; i<8; i++)
       allAddresses[k1-1][i] = sensorAddress[i];
   }
 	while (Serial.available())
-		Serial.read(); 
+		Serial.read();
 }
 
 byte c2h(byte b)
 {
-  if (b > 47 && b < 58) 
+  if (b > 47 && b < 58)
     return b - 48;
-  else if (b > 64 && b < 71) 
+  else if (b > 64 && b < 71)
     return b - 55;
-  else if (b > 96 && b < 103) 
+  else if (b > 96 && b < 103)
     return b - 87;
   return 0;
 }
