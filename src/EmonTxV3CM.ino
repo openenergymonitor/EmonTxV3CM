@@ -32,7 +32,7 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 #include <avr/wdt.h>
 
-const byte version = 14;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 15;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
 #define ENABLE_RF                                       // Enable RF69 transmit, turn off if using direct serial, or EmonESP
@@ -117,7 +117,7 @@ void setup()
   if (digitalRead(DIP_switch1)==LOW) nodeID++;                            // IF DIP switch 1 is switched on (LOW) then add 1 to nodeID
 
   #ifdef DEBUG
-    Serial.print(F("emonTx V3.4 EmonLibCM Continuous Monitoring V")); Serial.println(version*0.1);
+    Serial.print(F("emonTx V3 EmonLibCM Continuous Monitoring V")); Serial.println(version*0.1);
     Serial.println(F("OpenEnergyMonitor.org"));
   #else
     Serial.println(F("describe:EmonTX3CM"));
@@ -142,21 +142,6 @@ void setup()
     #endif
   #endif
   
-  readInput();                                                          // option to enter config mode e.g +++ [Enter]
-  
-  // Read status of USA calibration DIP switch----------------------------------------------
-  if (digitalRead(DIP_switch2)==LOW) {
-    USA=true;                            // IF DIP switch 2 is switched on then activate USA mode
-    Serial.print(F("USA Vcal active: ")); Serial.println(vCal_USA);
-  }
-
-  // Check connected CT sensors ------------------------------------------------------------
-  if (analogRead(1) > 0) {CT1 = 1; CT_count++;} else CT1=0;               // check to see if CT is connected to CT1 input, if so enable that channel
-  if (analogRead(2) > 0) {CT2 = 1; CT_count++;} else CT2=0;               // check to see if CT is connected to CT2 input, if so enable that channel
-  if (analogRead(3) > 0) {CT3 = 1; CT_count++;} else CT3=0;               // check to see if CT is connected to CT3 input, if so enable that channel
-  if (analogRead(4) > 0) {CT4 = 1; CT_count++;} else CT4=0;               // check to see if CT is connected to CT4 input, if so enable that channel
-  if ( CT_count == 0) CT1=1;                                              // If no CT's are connected CT1-4 then by default read from CT1
-
   // ---------------------------------------------------------------------------------------
   #ifdef ENABLE_RF
     Serial.println(F("RFM int..."));
@@ -177,6 +162,21 @@ void setup()
     rf12_sendWait(2);
     emontx.P1=0;
   #endif
+
+  readInput();                                                          // option to enter config mode e.g +++ [Enter]
+  
+  // Read status of USA calibration DIP switch----------------------------------------------
+  if (digitalRead(DIP_switch2)==LOW) {
+    USA=true;                            // IF DIP switch 2 is switched on then activate USA mode
+    Serial.print(F("USA Vcal active: ")); Serial.println(vCal_USA);
+  }
+
+  // Check connected CT sensors ------------------------------------------------------------
+  if (analogRead(1) > 0) {CT1 = 1; CT_count++;} else CT1=0;               // check to see if CT is connected to CT1 input, if so enable that channel
+  if (analogRead(2) > 0) {CT2 = 1; CT_count++;} else CT2=0;               // check to see if CT is connected to CT2 input, if so enable that channel
+  if (analogRead(3) > 0) {CT3 = 1; CT_count++;} else CT3=0;               // check to see if CT is connected to CT3 input, if so enable that channel
+  if (analogRead(4) > 0) {CT4 = 1; CT_count++;} else CT4=0;               // check to see if CT is connected to CT4 input, if so enable that channel
+  if ( CT_count == 0) CT1=1;                                              // If no CT's are connected CT1-4 then by default read from CT1
   
   // ---------------------------------------------------------------------------------------
   
