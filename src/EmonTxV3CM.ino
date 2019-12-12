@@ -15,7 +15,7 @@ v1.1: First stable release, Set default node to 15
 v1.2: Enable RF startup test sequence (factory testing), Enable DEBUG by default to support EmonESP
 v1.3: Inclusion of watchdog
 
-emonhub.conf node decoder (nodeid is 8 when switch is off, 9 when switch is on)
+emonhub.conf node decoder (nodeid is 15 when switch is off, 16 when switch is on)
 See: https://github.com/openenergymonitor/emonhub/blob/emon-pi/configuration.md
 copy the following in to emonhub.conf:
 
