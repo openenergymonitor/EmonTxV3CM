@@ -77,32 +77,50 @@ extern DeviceAddress *temperatureSensors;
 static void load_config(bool verbose)
 {
   byte* src = (byte *)&data;
-  bool dataPresent = (EEPROM.read(0) != 255);
+  
+  byte flag=0;
+  bool dataPresent = false;
+  for (byte j=0; j<sizeof(data); j++) {
+    // Check each EEPROM memory location for data, 255 = no data present
+    // If data present then increment flag
+    if ((EEPROM.read(j) != 255)) flag ++;
+    // Serial.print(EEPROM.read(j));
+    // Serial.print(" ");
+    // Serial.println(flag);
+
+    // Check if EEPROM data matches the expected sizeof data, if not ignore config since this could be for emonTx V3
+    if (flag == sizeof(data)) dataPresent = true;
+  }
  
-  if (dataPresent)
+  if (dataPresent==true)
   {
     for (byte j=0; j<sizeof(data); j++, src++)
           *src = EEPROM.read(j); 
 
-    nodeID       = data.nodeID;
-    RF_freq      = data.RF_freq;
-    networkGroup = data.networkGroup;
-    vCal         = data.vCal;
-    i1Cal        = data.i1Cal;
-    i1Lead       = data.i1Lead;
-    i2Cal        = data.i2Cal;
-    i2Lead       = data.i2Lead;
-    i3Cal        = data.i3Cal;
-    i3Lead       = data.i3Lead; 
-    i4Cal        = data.i4Cal; 
-    i4Lead       = data.i4Lead;
-    period       = data.period;
-    pulse_enable = data.pulse_enable;
-    pulse_period = data.pulse_period;
-    temp_enable  = data.temp_enable;
-    rf_whitening = data.rf_whitening;
-    memcpy(temp_addr, data.temp_sensors, sizeof(temp_addr)>sizeof(data.temp_sensors)?sizeof(data.temp_sensors):sizeof(temp_addr));
-  }    
+    // Sanity check before loading saved value, nodeID should never be zero
+    if ((data.nodeID!=0)&&(data.RF_freq!=0)&&(data.networkGroup!=0)&&(data.vCal!=0)&&(data.i1Cal!=0)&&(data.i1Lead!=0)&&(data.i2Cal!=0)&&(data.i2Lead!=0)&&(data.i3Cal!=0)&&(data.i3Lead!=0)&&(data.i4Cal!=0)&&(data.i4Lead!=0)&&(data.period!=0)){
+
+      nodeID       = data.nodeID;
+      RF_freq      = data.RF_freq;
+      networkGroup = data.networkGroup;
+      vCal         = data.vCal;
+      i1Cal        = data.i1Cal;
+      i1Lead       = data.i1Lead;
+      i2Cal        = data.i2Cal;
+      i2Lead       = data.i2Lead;
+      i3Cal        = data.i3Cal;
+      i3Lead       = data.i3Lead; 
+      i4Cal        = data.i4Cal; 
+      i4Lead       = data.i4Lead;
+      period       = data.period;
+      pulse_enable = data.pulse_enable;
+      pulse_period = data.pulse_period;
+      temp_enable  = data.temp_enable;
+      rf_whitening = data.rf_whitening;
+      memcpy(temp_addr, data.temp_sensors, sizeof(temp_addr)>sizeof(data.temp_sensors)?sizeof(data.temp_sensors):sizeof(temp_addr));
+      
+    } else Serial.println(F("ERROR EEPROM config invalid...using default values"));
+  }   
   
   if (verbose)
   {
@@ -186,7 +204,7 @@ static void save_config()
 static void wipe_eeprom(void)
 {
   byte* src = (byte*)&data;
-  Serial.println(F("Resetting..."));
+  Serial.println(F("Erasing EEPROM..."));
   
   for (byte j=0; j<sizeof(data); j++)
     EEPROM[j] = 255;

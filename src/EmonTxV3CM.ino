@@ -10,14 +10,20 @@
 
 /*
 Change Log:
-v0.1: First version, combination of EmonTxV3CM_max and EmonTx v3 original firmware
+v1.0: First release of EmonTxV3 Continuous Monitoring Firmware.
+v1.1: First stable release, Set default node to 15
+v1.2: Enable RF startup test sequence (factory testing), Enable DEBUG by default to support EmonESP
+v1.3: Inclusion of watchdog
+v1.4: Error checking to EEPROM config
+v1.5: Faster RFM factory test
+v1.6: Removed reliance on full jeelib for RFM, minimal rfm_send fuction implemented instead, thanks to Robert Wall
 
 emonhub.conf node decoder (nodeid is 15 when switch is off, 16 when switch is on)
 See: https://github.com/openenergymonitor/emonhub/blob/emon-pi/configuration.md
 copy the following in to emonhub.conf:
 
 [[15]]
-  nodename = emontx15
+  nodename = emontx3cm15
   [[[rx]]]
     names = MSG, Vrms, P1, P2, P3, P4, E1, E2, E3, E4, T1, T2, T3, pulse
     datacodes = L,h,h,h,h,h,L,L,L,L,h,h,h,L
@@ -29,7 +35,7 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 
 
-const byte version = 1;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 16;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
 #define DEBUG                                        // Debug level print out
@@ -151,7 +157,10 @@ void setup()
   
   
   // Read status of USA calibration DIP switch----------------------------------------------
-  if (digitalRead(DIP_switch2)==LOW) USA=true;                            // IF DIP switch 2 is switched on then activate USA mode
+  if (digitalRead(DIP_switch2)==LOW) {
+      USA=true;                            // IF DIP switch 2 is switched on then activate USA mode
+      Serial.print(F("USA Vcal active: ")); Serial.println(vCal_USA);
+  }
 
   // Check connected CT sensors ------------------------------------------------------------
   if (analogRead(1) > 0) {CT1 = 1; CT_count++;} else CT1=0;               // check to see if CT is connected to CT1 input
@@ -168,7 +177,14 @@ void setup()
     for (int i=10; i>=0; i--)                                             // Send RF test sequence (for factory testing)
     {
       emontx.P1=i;
-      rfm_send((byte *)&emontx, sizeof(emontx), networkGroup, nodeID);
+      PayloadTX tmp = emontx;
+      if (rf_whitening == 2)
+      {
+          byte WHITENING = 0x55;
+          for (byte i = 0, *p = (byte *)&tmp; i < sizeof tmp; i++, p++)
+              *p ^= (byte)WHITENING;
+      }
+      rfm_send((byte *)&tmp, sizeof(tmp), networkGroup, nodeID);     //send data
       delay(100);
     }
     emontx.P1=0;
@@ -300,7 +316,9 @@ void loop()
       Serial.print(F(",pulse:")); Serial.println(emontx.pulse);  
       delay(20);
     }
-        digitalWrite(LEDpin,HIGH); delay(100);digitalWrite(LEDpin,LOW);
+    
+    // Flash LED
+    digitalWrite(LEDpin,HIGH); delay(100);digitalWrite(LEDpin,LOW);
 
     #ifdef SHOW_CAL
       // to show current for calibration:
