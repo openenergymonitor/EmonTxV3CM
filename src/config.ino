@@ -234,8 +234,10 @@ void readConfigInput(void)
       {
         Serial.println(F("Entering config mode..."));
         showString(helpText1);
-        while(config())
-          ;
+        while(config()) {
+          wdt_reset();
+          delay(100);
+        }
       }
     }
     wdt_reset();
