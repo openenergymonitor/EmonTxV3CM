@@ -33,7 +33,7 @@ copy the following in to emonhub.conf:
 
 */
 #include <Arduino.h>
-
+#include <avr/wdt.h>
 
 const byte version = 16;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
@@ -55,10 +55,10 @@ const byte version = 16;                                 // Firmware version div
 
 enum rfband {RF12_433MHZ = 1, RF12_868MHZ, RF12_915MHZ }; // frequency band.
 
-byte RF_freq = RF12_868MHZ;                             // Frequency of radio module can be RF12_433MHZ, RF12_868MHZ or RF12_915MHZ. 
+byte RF_freq = RF12_433MHZ;                             // Frequency of radio module can be RF12_433MHZ, RF12_868MHZ or RF12_915MHZ. 
 byte nodeID = 15;                                       // node ID for this emonTx.
 int networkGroup = 210;                                 // wireless network group, needs to be same as emonBase / emonPi and emonGLCD. OEM default is 210
-int rf_whitening = 1;                                   // RF & data whitening - default = 2: RF is ON with whitening. See congig.ino for more.
+int rf_whitening = 2;                                   // RF & data whitening - default = 2: RF is ON with whitening. See congig.ino for more.
 
 typedef struct {
     unsigned long Msg;
@@ -116,6 +116,8 @@ bool CT1, CT2, CT3, CT4;     // Record if CT present during startup
 //----------------------------------------Setup--------------------------------------------------
 void setup() 
 {  
+  wdt_enable(WDTO_8S);
+  
   pinMode(LEDpin, OUTPUT);
   digitalWrite(LEDpin,HIGH);
   
@@ -318,7 +320,7 @@ void loop()
     }
     
     // Flash LED
-    digitalWrite(LEDpin,HIGH); delay(100);digitalWrite(LEDpin,LOW);
+    digitalWrite(LEDpin,HIGH); delay(100); digitalWrite(LEDpin,LOW);
 
     #ifdef SHOW_CAL
       // to show current for calibration:
@@ -335,4 +337,6 @@ void loop()
     #endif
     // End of print out ----------------------------------------------------
   }
+  wdt_reset();
+  delay(20);
 }

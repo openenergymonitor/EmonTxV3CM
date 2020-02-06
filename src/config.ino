@@ -228,7 +228,8 @@ void readConfigInput(void)
   while (millis() < (start + 10000))
   {
     // If serial input of keyword string '+++' is entered during 10s POST then enter config mode
-    if (Serial.available())
+    if (Serial.available()) 
+    {
       if ( Serial.readString() == "+++\r\n")
       {
         Serial.println(F("Entering config mode..."));
@@ -236,6 +237,9 @@ void readConfigInput(void)
         while(config())
           ;
       }
+    }
+    wdt_reset();
+    delay(100);
   }
 }
 
