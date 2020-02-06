@@ -97,29 +97,41 @@ static void load_config(bool verbose)
     for (byte j=0; j<sizeof(data); j++, src++)
           *src = EEPROM.read(j); 
 
-    // Sanity check before loading saved value, nodeID should never be zero
-    if ((data.nodeID!=0)&&(data.RF_freq!=0)&&(data.networkGroup!=0)&&(data.vCal!=0)&&(data.i1Cal!=0)&&(data.i1Lead!=0)&&(data.i2Cal!=0)&&(data.i2Lead!=0)&&(data.i3Cal!=0)&&(data.i3Lead!=0)&&(data.i4Cal!=0)&&(data.i4Lead!=0)&&(data.period!=0)){
-
-      nodeID       = data.nodeID;
-      RF_freq      = data.RF_freq;
-      networkGroup = data.networkGroup;
-      vCal         = data.vCal;
-      i1Cal        = data.i1Cal;
-      i1Lead       = data.i1Lead;
-      i2Cal        = data.i2Cal;
-      i2Lead       = data.i2Lead;
-      i3Cal        = data.i3Cal;
-      i3Lead       = data.i3Lead; 
-      i4Cal        = data.i4Cal; 
-      i4Lead       = data.i4Lead;
-      period       = data.period;
-      pulse_enable = data.pulse_enable;
-      pulse_period = data.pulse_period;
-      temp_enable  = data.temp_enable;
-      rf_whitening = data.rf_whitening;
-      memcpy(temp_addr, data.temp_sensors, sizeof(temp_addr)>sizeof(data.temp_sensors)?sizeof(data.temp_sensors):sizeof(temp_addr));
+    // check validity of EEPROM config
+    byte invalid_config = 0;
+    // rfm node id should be 1..30
+    if (data.nodeID>=1 && data.nodeID<=30) nodeID = data.nodeID; else invalid_config++;
+    // rfm frequency should be either 433, 868 or 915
+    if (data.RF_freq==RF12_433MHZ || data.RF_freq==RF12_868MHZ || data.RF_freq==RF12_915MHZ) RF_freq = data.RF_freq; else invalid_config++;
+    // rfm network group should be 1..212
+    if (data.networkGroup>=1 && data.networkGroup<=212) networkGroup = data.networkGroup; else invalid_config++;
+    
+    // Calibration values should not be 0 but are less critical
+    // and so are copied here without validation
+    vCal         = data.vCal;
+    i1Cal        = data.i1Cal;
+    i1Lead       = data.i1Lead;
+    i2Cal        = data.i2Cal;
+    i2Lead       = data.i2Lead;
+    i3Cal        = data.i3Cal;
+    i3Lead       = data.i3Lead; 
+    i4Cal        = data.i4Cal; 
+    i4Lead       = data.i4Lead;
+    
+    // data period must be greater than 0
+    if (data.period>0) period = data.period; else invalid_config++; 
+    
+    pulse_enable = data.pulse_enable;
+    pulse_period = data.pulse_period;
+    temp_enable  = data.temp_enable;
+    rf_whitening = data.rf_whitening;
       
-    } else Serial.println(F("ERROR EEPROM config invalid...using default values"));
+    memcpy(temp_addr, data.temp_sensors, sizeof(temp_addr)>sizeof(data.temp_sensors)?sizeof(data.temp_sensors):sizeof(temp_addr));
+      
+    if (invalid_config) {
+        Serial.print(F("ERROR EEPROM config contains ")); Serial.print(invalid_config); Serial.println(F(" invalid values"));
+        Serial.println(F("Consider restoring defaults and re-applying config."));
+    }
   }   
   
   if (verbose)
