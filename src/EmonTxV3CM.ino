@@ -36,7 +36,7 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 #include <avr/wdt.h>
 
-const byte version = 16;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 17;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
 #define DEBUG                                        // Debug level print out
