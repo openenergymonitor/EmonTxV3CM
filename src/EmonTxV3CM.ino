@@ -17,6 +17,7 @@ v1.3: Inclusion of watchdog
 v1.4: Error checking to EEPROM config
 v1.5: Faster RFM factory test
 v1.6: Removed reliance on full jeelib for RFM, minimal rfm_send fuction implemented instead, thanks to Robert Wall
+v1.7: Check radio channel is clear before transmit
 
 emonhub.conf node decoder (nodeid is 15 when switch is off, 16 when switch is on)
 See: https://github.com/openenergymonitor/emonhub/blob/emon-pi/configuration.md
@@ -41,7 +42,7 @@ const byte version = 16;                                 // Firmware version div
 #define DEBUG                                        // Debug level print out
 // #define SHOW_CAL                                     // Uncomment to show current for calibration
 
-
+#define RFM69CW
 #define RFMSELPIN 10                                    // RFM pins
 #define RFMIRQPIN 2                                     // RFM pins
 #define RFPWR 0x99                                      // RFM Power setting - see rfm.ino for more
@@ -58,7 +59,9 @@ enum rfband {RF12_433MHZ = 1, RF12_868MHZ, RF12_915MHZ }; // frequency band.
 byte RF_freq = RF12_433MHZ;                             // Frequency of radio module can be RF12_433MHZ, RF12_868MHZ or RF12_915MHZ. 
 byte nodeID = 15;                                       // node ID for this emonTx.
 int networkGroup = 210;                                 // wireless network group, needs to be same as emonBase / emonPi and emonGLCD. OEM default is 210
-int rf_whitening = 2;                                   // RF & data whitening - default = 2: RF is ON with whitening. See congig.ino for more.
+const int busyThreshold = -97;                          // Signal level below which the radio channel is clear to transmit
+const byte busyTimeout = 15;                            // Time in ms to wait for the channel to become clear, before transmitting anyway
+int rf_whitening = 2;                                   // RF & data whitening - 0 = no RF, 1 = RF on, no whitening, default = 2: RF is ON with whitening.
 
 typedef struct {
     unsigned long Msg;
@@ -89,11 +92,11 @@ float i2Lead = 4.2;
 float i3Cal = 90.9;         // (2000 turns / 22 Ohm burden) = 90.9
 float i3Lead = 4.2;
 float i4Cal = 16.67;        // (2000 turns / 120 Ohm burden) = 16.67
-float i4Lead = 1.0;
+float i4Lead = 6.0;
 float vCal  = 268.97;       // (240V x 13) / 11.6V = 268.97 Calibration for UK AC-AC adapter 77DB-06-09
 const float vCal_USA = 130.0;   // Calibration for US AC-AC adapter 77DA-10-09
 bool  USA=false;
-float period = 10.0;        // datalogging period
+float period = 9.96;        // datalogging period
 bool  pulse_enable = true;  // pulse counting
 int   pulse_period = 100;   // pulse min period
 bool  temp_enable = true;   // enable temperature measurement
@@ -175,7 +178,7 @@ void setup()
 
   if (rf_whitening)
   {
-    rfm_init();                                                           // initialize RFM
+    rfm_init(RF_freq);                                                           // initialize RFM
     for (int i=10; i>=0; i--)                                             // Send RF test sequence (for factory testing)
     {
       emontx.P1=i;
@@ -186,7 +189,7 @@ void setup()
           for (byte i = 0, *p = (byte *)&tmp; i < sizeof tmp; i++, p++)
               *p ^= (byte)WHITENING;
       }
-      rfm_send((byte *)&tmp, sizeof(tmp), networkGroup, nodeID);     //send data
+      rfm_send((byte *)&tmp, sizeof(tmp), networkGroup, nodeID, busyThreshold, busyTimeout);
       delay(100);
     }
     emontx.P1=0;
@@ -272,7 +275,7 @@ void loop()
     emontx.P4 = EmonLibCM_getRealPower(3); 
     emontx.E4 = EmonLibCM_getWattHour(3); 
 
-    emontx.Vrms   = EmonLibCM_getVrms() * 100;
+    emontx.Vrms = EmonLibCM_getVrms() * 100;
     
     emontx.T1 = allTemps[0];
     emontx.T2 = allTemps[1];
@@ -289,7 +292,7 @@ void loop()
           for (byte i = 0, *p = (byte *)&tmp; i < sizeof tmp; i++, p++)
               *p ^= (byte)WHITENING;
       }
-      rfm_send((byte *)&tmp, sizeof(tmp), networkGroup, nodeID);     //send data
+      rfm_send((byte *)&tmp, sizeof(tmp), networkGroup, nodeID, busyThreshold, busyTimeout);     //send data
       delay(50);
     }
 
@@ -318,12 +321,10 @@ void loop()
       Serial.print(F(",pulse:")); Serial.println(emontx.pulse);  
       delay(20);
     }
-    
-    // Flash LED
-    digitalWrite(LEDpin,HIGH); delay(100); digitalWrite(LEDpin,LOW);
+    digitalWrite(LEDpin,HIGH); delay(50);digitalWrite(LEDpin,LOW);
 
     #ifdef SHOW_CAL
-      // to show current for calibration:
+      // to show current & power factor for calibration:
   
       Serial.print(F(",I1:")); Serial.print(EmonLibCM_getIrms(EmonLibCM_getLogicalChannel(1)));
       Serial.print(F(",I2:")); Serial.print(EmonLibCM_getIrms(EmonLibCM_getLogicalChannel(2)));
