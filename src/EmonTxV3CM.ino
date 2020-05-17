@@ -89,7 +89,7 @@ float i2Lead = 4.2;
 float i3Cal = 90.9;         // (2000 turns / 22 Ohm burden) = 90.9
 float i3Lead = 4.2;
 float i4Cal = 16.67;        // (2000 turns / 120 Ohm burden) = 16.67
-float i4Lead = 1.0;
+float i4Lead = 6.0;
 float vCal  = 268.97;       // (240V x 13) / 11.6V = 268.97 Calibration for UK AC-AC adapter 77DB-06-09
 const float vCal_USA = 130.0;   // Calibration for US AC-AC adapter 77DA-10-09
 bool  USA=false;
