@@ -15,26 +15,26 @@ EmonTxV3CM provides better results than the [EmonTxV3 Discreet Sampling firmware
 - RMS Voltage measurement.
 - Support for 3x DS18B20 temperature sensors.
 - Support for pulse counting.
-- Resulting readings transmitted via RFM radio and printed to serial.
+- Resulting readings transmitted via RFM radio or printed to serial.
 - Serial configuration of RFM radio and calibration values.
 
 ## How to Compile and upload
 
-If using an RPi, it is assumed the install has been created using the emonScript or an emonSD image. If not other packages may need to be installed.
+If using an RPi, it is assumed the install has been created using the emonScript or an emonSD image. If not, other packages may need to be installed.
 
 ### Using PlatformIO
 
 The firmware can be compiled and uploaded on an RPi using [PlatformIO](https://platformio.org)
 
-#### Install platformio
+#### Install PlatformIO
 
-See [platformio install quick start](http://docs.platformio.org/en/latest/installation.html#super-quick-mac-linux)
+See [PlatformIO install quick start](http://docs.platformio.org/en/latest/installation.html#super-quick-mac-linux)
 
 If installing on an RPi, you may need to run this command
 
     $ curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/master/scripts/99-platformio-udev.rules | sudo tee /etc/udev/rules.d/99-platformio-udev.rules
 
-#### Clone this repository
+#### Clone this Repository
 
 On newer installations clone the repositoy in the `openenergymonitor` directory.
 
@@ -56,7 +56,7 @@ If the emonTX is connected to the RPi via the serial interface, the firmware can
 
     $ avrdude -v -c arduino -p ATMEGA328P -P /dev/ttyAMA0 -b 115200 -U flash:w:output.hex
 
-If not use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx.
+If not, use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx.
 
 Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting or else configure for serial connection
 
@@ -151,7 +151,7 @@ To decode the data packet sent via RFM by this firmware, add the following emonh
 
 ### Serial Connection
 
-If the RPi is connected via the serial interface directly to the emonTX, then `emonhub.conf` should have this section added to the interfacers section.  The `nodeoffset` will specify the node ID. By default this will be zero.
+If the RPi is connected via the serial interface directly to the emonTX, then `emonhub.conf` should have this section added to the interfacers section.  The `nodeoffset` will specify the node ID. By default this will be zero. Use an unused NodeID (i.e. a node without a configuration usually 0 - 4)
 
     [[SerialTx]]
         Type = EmonHubTx3eInterfacer
