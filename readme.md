@@ -46,9 +46,13 @@ If the emonTX is connected to the Rpi via the serial interface, The firmware sho
 
     $ pio run -v -e emontx_pi
 
-The firmware can then be uploaded (ensure emonhub has been stopped - `sudo systemctl stop emonhub.service`) with
+If the emonTX is connected via the serial link, the firmware can then be uploaded (ensure emonhub has been stopped - `sudo systemctl stop emonhub.service`) with
 
     $ avrdude -v -c arduino -p ATMEGA328P -P /dev/ttyAMA0 -b 115200 -U flash:w:output.hex
+
+If not use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx.
+
+Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting or else configure for serial connection
 
 ### Using Arduino IDE
 
@@ -62,7 +66,7 @@ The firmware can then be uploaded (ensure emonhub has been stopped - `sudo syste
 
 5. Use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx.
 
-6. Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting.
+6. Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting or else configure for serial connection.
 
 ## Serial Configuration
 
