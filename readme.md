@@ -64,8 +64,6 @@ The firmware can then be uploaded (ensure emonhub has been stopped - `sudo syste
 
 6. Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting.
 
-**Todo:** PlatformIO compilation and upload instructions.
-
 ## Serial Configuration
 
 The emonTX can be configured via a serial link.
