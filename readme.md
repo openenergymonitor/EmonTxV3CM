@@ -20,13 +20,19 @@ EmonTxV3CM provides better results than the [EmonTxV3 Discreet Sampling firmware
 
 ## How to Compile and upload
 
+If using an RPi, it is assumed the install has been created using the emonScript or an emonSD image. If not other packages may need to be installed.
+
 ### Using PlatformIO
 
 The firmware can be compiled and uploaded on an RPi using [PlatformIO](https://platformio.org)
 
-#### Install platformio (if needed)
+#### Install platformio
 
 See [platformio install quick start](http://docs.platformio.org/en/latest/installation.html#super-quick-mac-linux)
+
+If installing on an RPi, you may need to run this command
+
+    $ curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/master/scripts/99-platformio-udev.rules | sudo tee /etc/udev/rules.d/99-platformio-udev.rules
 
 #### Clone this repository
 
@@ -42,11 +48,11 @@ All the libs will be automatically installed at the correct versions on first ru
 
     $ pio run -t upload
 
-If the emonTX is connected to the Rpi via the serial interface, The firmware should be complied with
+If the emonTX is connected to the RPi via the serial interface, The firmware should be complied with
 
     $ pio run -v -e emontx_pi
 
-If the emonTX is connected via the serial link, the firmware can then be uploaded (ensure emonhub has been stopped - `sudo systemctl stop emonhub.service`) with
+If the emonTX is connected to the RPi via the serial interface, the firmware can then be uploaded (ensure emonhub has been stopped - `sudo systemctl stop emonhub.service`) with
 
     $ avrdude -v -c arduino -p ATMEGA328P -P /dev/ttyAMA0 -b 115200 -U flash:w:output.hex
 
