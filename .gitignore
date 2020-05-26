@@ -50,3 +50,8 @@ eagle.epf
 # file locks introduced since 7.x
 *.lck
 
+# Hex files
+.hex
+.vscode/c_cpp_properties.json
+.vscode/extensions.json
+.vscode/launch.json
