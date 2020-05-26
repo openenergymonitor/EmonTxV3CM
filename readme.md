@@ -6,7 +6,7 @@ The following EmonTxV3 continuous monitoring firmware is based on the EmonLibCM 
 - Github: https://github.com/openenergymonitor/EmonLibCM. 
 - Original forum post: https://community.openenergymonitor.org/t/emonlibcm-version-2
 
-EmonTxV3CM provides better results than the [EmonTxV3 Discreet Sampling firmware](https://github.com/openenergymonitor/emontx3) which uses the emonLib library, especially where PV Diverters or other fast changing loads are in use. The EmonLibCM library continuously measures in the background the voltage and all the current input channels in turn and calculates a true average quantity for each.
+EmonTxV3CM provides better results than the [EmonTxV3 Discrete Sampling firmware](https://github.com/openenergymonitor/emontx3) which uses the emonLib library, especially where PV Diverters or other fast changing loads are in use. The EmonLibCM library continuously measures in the background the voltage and all the current input channels in turn and calculates a true average quantity for each.
 
 ## Features
 
@@ -24,7 +24,7 @@ If using an RPi, it is assumed the install has been created using the emonScript
 
 ### Using PlatformIO
 
-The firmware can be compiled and uploaded on an RPi using [PlatformIO](https://platformio.org)
+The firmware can be compiled and uploaded on an RPi using [PlatformIO](https://platformio.org). [This may work, but is untested by the author, on other platforms - May 2020].
 
 #### Install PlatformIO
 
@@ -58,11 +58,11 @@ If the emonTX is connected to the RPi via the serial interface, the firmware can
 
 If not, use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx.
 
-Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting or else configure for serial connection
+Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting or else configure for serial connection.
 
 ### Using Arduino IDE
 
-1. Either download directly or use 'git clone' to download this repository into a directory called EmonTxV3CM in your Arduino Sketchbook directory. Ensure that both EmonTxV3CM.ino **and** config.ino are in the same folder.
+1. Either download directly or use 'git clone' to download this repository into a directory called EmonTxV3CM in your Arduino Sketchbook directory. Ensure that both EmonTxV3CM.ino **and** rfm.ino are in the same folder.
 
 2. Either download directly or use 'git clone' to download the [EmonLibCM library](https://github.com/openenergymonitor/EmonLibCM) into your Arduino Libraries directory.
 
@@ -129,7 +129,16 @@ To decode the data packet sent via RFM by this firmware, add the following emonh
 
 **This will be added automatically to exsiting emonPi / emonBase after running update.**
 
-**Note:** This firmware uses data whitening to improve the reliability of the data transmission. A standard pattern of 1s and 0s is overlayed on the underlying data, this prevents sync issues that result from too many zero values in a packet. When the packet is received it is decoded by emonhub. The 'whitening = 1' is required to tell emonhub to decode the packet correctly.
+#### Data Whitening
+
+This firmware uses data whitening to improve the reliability of the data transmission. A standard pattern of 1s and 0s is overlayed on the underlying data, this prevents sync issues that result from too many zero values in a packet. When the packet is received it is decoded by emonhub.
+
+To setup *whitening*
+
+- If `w2` is set on the emonTx, then `whitening = 1` is needed in the node configuration.
+- If `w1` is set on the emonTx, then `whitening = 0` is needed in the node configuration.
+
+#### Node Configuration
 
     [[15]]
       nodename = emontx3cm15
@@ -167,19 +176,18 @@ In addition the RFM will need to be turned off using the serial configuration (`
 
 The data will be sent in `name:value` pairs.
 
-* `MSG` is a count of message number, it increments by one for each message sent. This allows missing data to be identified (but never restored, unfortunately).
-* `Vrms` is the voltage in 1/100ths of a Volt.
-* `P1 - P4` are the real power value for the 4 c.t. inputs in Watts.
-* `E1 - E4` are the accumulated energies for the 4 c.t. inputs in Wh.
-* `T1 - T3` are temperatures in 1/100ths of a degree Celsius.
-* `pulse` is an accumulating count of pulses as detected by the pulse input.
+- `MSG` is a count of message number, it increments by one for each message sent. This allows missing data to be identified (but never restored, unfortunately).
+- `Vrms` is the voltage in 1/100ths of a Volt.
+- `P1 - P4` are the real power value for the 4 c.t. inputs in Watts.
+- `E1 - E4` are the accumulated energies for the 4 c.t. inputs in Wh.
+- `T1 - T3` are temperatures in 1/100ths of a degree Celsius.
+- `pulse` is an accumulating count of pulses as detected by the pulse input.
 
 e.g.
 
     MSG:1,Vrms:246.81,P1:79,E1:0,pulse:1
 
 The accumulated values start from zero when the sketch starts or is reset. emonCMS is able to handle that reset in most circumstances.
-
 
 ### Further Development
 
