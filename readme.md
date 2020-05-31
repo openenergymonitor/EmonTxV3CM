@@ -62,17 +62,15 @@ Configure EmonHub on the receiving base station to decode the RFM data packet us
 
 ### Using Arduino IDE
 
-1. Either download directly or use 'git clone' to download this repository into a directory called EmonTxV3CM in your Arduino Sketchbook directory. Ensure that both EmonTxV3CM.ino **and** rfm.ino are in the same folder.
+1. Either download directly or use 'git clone' to download this repository into a directory called EmonTxV3CM in your Arduino Sketchbook directory. Ensure that `EmonTxV3CM.ino`, `config.ino` **and** `rfm.ino` are in the same folder.
 
-2. Either download directly or use 'git clone' to download the [EmonLibCM library](https://github.com/openenergymonitor/EmonLibCM) into your Arduino Libraries directory.
+1. Either download directly or use 'git clone' to download the [EmonLibCM library](https://github.com/openenergymonitor/EmonLibCM) into your Arduino Libraries directory.
 
-3. Either download directly or use 'git clone' to download the [JeeLib library](https://github.com/jcw/jeelib) into your Arduino Libraries directory.
+1. Open the Arduino IDE (or restart, to reload the libraries). Open the EmonTxV3CM firmware, ensure that `EmonTxV3CM.ino`, `rfm.ino` **and** `config.ino` are present as three tabs in the IDE when the firmware is open.
 
-4. Open the Arduino IDE (or restart, to reload the libraries). Open the EmonTxV3CM firmware, ensure that both EmonTxV3CM.ino **and** config.ino are present as two tabs in the IDE when the firmware is open.
+1. Use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx.
 
-5. Use a [5v USB to UART cable](https://shop.openenergymonitor.com/programmers) to upload the firmware to emonTx.
-
-6. Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting or else configure for serial connection.
+1. Configure EmonHub on the receiving base station to decode the RFM data packet using the decoder below, note data whitening setting or else configure for serial connection.
 
 ## Serial Configuration
 
