@@ -4,7 +4,7 @@
 The following EmonTxV3 continuous monitoring firmware is based on the EmonLibCM library maintained by @Robert.Wall available here: 
 
 - Github: https://github.com/openenergymonitor/EmonLibCM. 
-- Original forum post: https://community.openenergymonitor.org/t/emonlibcm-version-2
+- Original forum post: https://community.openenergymonitor.org/t/emonlibcm-version-2-03/9241
 
 EmonTxV3CM provides better results than the [EmonTxV3 Discrete Sampling firmware](https://github.com/openenergymonitor/emontx3) which uses the emonLib library, especially where PV Diverters or other fast changing loads are in use. The EmonLibCM library continuously measures in the background the voltage and all the current input channels in turn and calculates a true average quantity for each.
 
