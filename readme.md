@@ -158,6 +158,8 @@ To setup *whitening*
 
 ### Serial Connection
 
+**Important: To enable printing via serial the RFM69 radio need to be turned off using the serial configuration (`w0`).**
+
 If the RPi is connected via the serial interface directly to the emonTX, then `emonhub.conf` should have this section added to the interfacers section.  The `nodeoffset` will specify the node ID. By default this will be zero. Use an unused NodeID (i.e. a node without a configuration usually 0 - 4)
 
     [[SerialTx]]
@@ -169,8 +171,6 @@ If the RPi is connected via the serial interface directly to the emonTX, then `e
               pubchannels = ToEmonCMS,
 
               nodeoffset = 1
-
-**Important: In addition the RFM will need to be turned off using the serial configuration (`w0`).**
 
 The data will be sent in `name:value` pairs.
 
