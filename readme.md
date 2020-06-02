@@ -170,7 +170,7 @@ If the RPi is connected via the serial interface directly to the emonTX, then `e
 
               nodeoffset = 1
 
-In addition the RFM will need to be turned off using the serial configuration (`w0`).
+**Important: In addition the RFM will need to be turned off using the serial configuration (`w0`).**
 
 The data will be sent in `name:value` pairs.
 
