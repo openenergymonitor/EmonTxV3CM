@@ -27,7 +27,7 @@ copy the following in to emonhub.conf:
   nodename = emontx3cm15
   [[[rx]]]
     names = MSG, Vrms, P1, P2, P3, P4, E1, E2, E3, E4, T1, T2, T3, pulse
-    datacodes = L,h,h,h,h,h,L,L,L,L,h,h,h,L
+    datacodes = L,h,h,h,h,h,l,l,l,l,h,h,h,L
     scales = 1,0.01,1,1,1,1,1,1,1,1,0.01,0.01,0.01,1
     units = n,V,W,W,W,W,Wh,Wh,Wh,Wh,C,C,C,p
     whitening = 1
@@ -36,7 +36,7 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 #include <avr/wdt.h>
 
-const byte version = 17;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 18;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
 #define DEBUG                                        // Debug level print out
@@ -66,7 +66,7 @@ int rf_whitening = 2;                                   // RF & data whitening -
 typedef struct {
     unsigned long Msg;
     int Vrms,P1,P2,P3,P4; 
-    unsigned long E1,E2,E3,E4; 
+    long E1,E2,E3,E4; 
     int T1,T2,T3;
     unsigned long pulse;
 } PayloadTX;
