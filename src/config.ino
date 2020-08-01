@@ -215,7 +215,6 @@ static void save_config()
 
 static void wipe_eeprom(void)
 {
-  byte* src = (byte*)&data;
   Serial.println(F("Erasing EEPROM..."));
   
   for (byte j=0; j<sizeof(data); j++)
@@ -236,7 +235,6 @@ void readConfigInput(void)
   Serial.println(F("'+++' then [Enter] for config mode"));
     
   unsigned long start = millis();
-  bool done = false;
   while (millis() < (start + 10000))
   {
     // If serial input of keyword string '+++' is entered during 10s POST then enter config mode
@@ -532,7 +530,7 @@ void set_temperatures(void)
     return;
   else
   {
-    byte i = 0, a, b;
+    byte i = 0, a = 0, b;
     Serial.readBytes(&b,1);     // expect a leading space
     while (Serial.readBytes(&b,1) && i < 8)
     {            

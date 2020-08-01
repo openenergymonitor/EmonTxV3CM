@@ -18,6 +18,8 @@ v1.4: Error checking to EEPROM config
 v1.5: Faster RFM factory test
 v1.6: Removed reliance on full jeelib for RFM, minimal rfm_send fuction implemented instead, thanks to Robert Wall
 v1.7: Check radio channel is clear before transmit
+v1.8: PayloadTx.E1 etc were unsigned long. 
+v1.9: Unused variables removed.
 
 emonhub.conf node decoder (nodeid is 15 when switch is off, 16 when switch is on)
 See: https://github.com/openenergymonitor/emonhub/blob/emon-pi/configuration.md
@@ -36,10 +38,10 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 #include <avr/wdt.h>
 
-const byte version = 18;                                 // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 19;                                // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
-#define DEBUG                                        // Debug level print out
+#define DEBUG                                           // Debug level print out
 // #define SHOW_CAL                                     // Uncomment to show current for calibration
 
 #define RFM69CW

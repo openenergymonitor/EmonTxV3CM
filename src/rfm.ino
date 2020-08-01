@@ -158,7 +158,7 @@ bool rfm_send(const byte *data, const byte size, const byte group, const byte no
 	{
 		if ((readReg(REG_IRQFLAGS2) & IRQ2_FIFOFULL) == 0)			// FIFO !full
 		{
-			uint8_t next;
+			uint8_t next = 0xAA;
 			switch(txstate)
 			{
 			  case 0: next=node & 0x1F; txstate++; break;    		  // Bits: CTL, DST, ACK, Node ID(5)
