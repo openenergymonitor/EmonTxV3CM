@@ -21,7 +21,7 @@ Byte
 46    Temperatures enabled
 47-94 Temperature Addresses (6×8)
 95    Data whitening
-
+96-99 assumedVrms
 
 */
 #include <Arduino.h>
@@ -51,6 +51,7 @@ const PROGMEM char helpText1[] =
 "            - zz.z = a floating point number for the phase calibration for this c.t. (z is not needed, or ignored if supplied, when x = 0)\n"
 "            -  e.g. k0 256.8\n"
 "            -       k1 90.9 2.00\n"
+"  a<xx.x>   - xx.x = a floating point number for the assumed voltage if no a.c. is detected\n"
 "  l         - list the config values\n"
 "  m<x> <yy> - meter pulse counting:\n"
 "               x = 0 for OFF, x = 1 for ON, <yy> = an integer for the pulse minimum period in ms. (y is not needed, or ignored when x = 0)\n"
@@ -69,7 +70,7 @@ const PROGMEM char helpText1[] =
 
 struct eeprom {byte nodeID, RF_freq, networkGroup; 
       float vCal, i1Cal, i1Lead, i2Cal, i2Lead, i3Cal, i3Lead, i4Cal, i4Lead, period; 
-      bool pulse_enable; int pulse_period; bool temp_enable; byte temp_sensors[48]; int rf_whitening;
+      bool pulse_enable; int pulse_period; bool temp_enable; byte temp_sensors[48]; int rf_whitening; float assumedVrms;
       } data;
 
 extern DeviceAddress *temperatureSensors;
@@ -125,6 +126,7 @@ static void load_config(bool verbose)
     pulse_period = data.pulse_period;
     temp_enable  = data.temp_enable;
     rf_whitening = data.rf_whitening;
+    assumedVrms  = data.assumedVrms;
       
     memcpy(temp_addr, data.temp_sensors, sizeof(temp_addr)>sizeof(data.temp_sensors)?sizeof(data.temp_sensors):sizeof(temp_addr));
       
@@ -159,6 +161,7 @@ static void list_calibration(void)
  
   Serial.println(F("Calibration:"));
   Serial.print(F("vCal = ")); Serial.println(vCal);
+  Serial.print(F("assumedV = ")); Serial.println(assumedVrms);
   Serial.print(F("i1Cal = ")); Serial.println(i1Cal);
   Serial.print(F("i1Lead = ")); Serial.println(i1Lead);
   Serial.print(F("i2Cal = ")); Serial.println(i2Cal);
@@ -198,6 +201,7 @@ static void save_config()
   data.pulse_period = pulse_period; 
   data.temp_enable  = temp_enable;
   data.rf_whitening = rf_whitening;
+  data.assumedVrms  = assumedVrms;
   memcpy(data.temp_sensors, temp_addr, sizeof(temp_addr)>sizeof(data.temp_sensors)?sizeof(data.temp_sensors):sizeof(temp_addr));
 
   for (byte j=0; j<sizeof(data); j++, src++)
@@ -263,11 +267,11 @@ static bool config(void)
   {
     char c = Serial.peek();
     switch (c) {
-        case 'i':  //  Set NodeID )range expected: 1 - 30
-          nodeID = Serial.parseFloat();
-          Serial.print(F("Node ")); Serial.println(nodeID & 0x1F);
+        case 'a':
+          assumedVrms = Serial.parseFloat();
+          Serial.print(F("Assumed V: "));Serial.println(assumedVrms);
           break;
-
+          
         case 'b':  // set band: 4 = 433, 8 = 868, 9 = 915
           RF_freq = bandToFreq(Serial.parseFloat());
           while (Serial.available())
@@ -283,6 +287,11 @@ static bool config(void)
           while (Serial.available())
             Serial.read(); 
           Serial.print(F("Group ")); Serial.println(networkGroup);
+          break;
+
+        case 'i':  //  Set NodeID )range expected: 1 - 30
+          nodeID = Serial.parseFloat();
+          Serial.print(F("Node ")); Serial.println(nodeID & 0x1F);
           break;
 
         case 'l': // print the calibration values

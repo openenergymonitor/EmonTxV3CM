@@ -20,6 +20,8 @@ v1.6: Removed reliance on full jeelib for RFM, minimal rfm_send fuction implemen
 v1.7: Check radio channel is clear before transmit
 v1.8: PayloadTx.E1 etc were unsigned long. 
 v1.9: Unused variables removed.
+v2.0: Power & energy calcs using "Assumed Vrms" added, serial output was switched off when rf output is on.
+
 
 emonhub.conf node decoder (nodeid is 15 when switch is off, 16 when switch is on)
 See: https://github.com/openenergymonitor/emonhub/blob/emon-pi/configuration.md
@@ -38,7 +40,7 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 #include <avr/wdt.h>
 
-const byte version = 19;                                // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 20;                                // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
 #define DEBUG                                           // Debug level print out
@@ -98,6 +100,7 @@ float i4Lead = 6.0;
 float vCal  = 268.97;       // (240V x 13) / 11.6V = 268.97 Calibration for UK AC-AC adapter 77DB-06-09
 const float vCal_USA = 130.0;   // Calibration for US AC-AC adapter 77DA-10-09
 bool  USA=false;
+float assumedVrms = 240.0;  // voltage to use for calculating assumed apparent power if a.c input is absent.
 float period = 9.96;        // datalogging period
 bool  pulse_enable = true;  // pulse counting
 int   pulse_period = 100;   // pulse min period
@@ -136,7 +139,7 @@ void setup()
   Serial.begin(115200);
 
   // ---------------------------------------------------------------------------------------
-  if (digitalRead(DIP_switch1)==LOW) nodeID++;                            // IF DIP switch 1 is switched on (LOW) then add 1 from nodeID
+  if (digitalRead(DIP_switch1)==LOW) nodeID++;                         // IF DIP switch 1 is switched on (LOW) then add 1 from nodeID
 
   #ifdef DEBUG
     Serial.print(F("emonTx V3.4 EmonLibCM Continuous Monitoring V")); Serial.println(version*0.1);
@@ -145,7 +148,7 @@ void setup()
     Serial.println(F("describe:EmonTX3CM"));
   #endif
  
-  load_config(true);                                                        // Load RF config from EEPROM (if any exists)
+  load_config(true);                                                   // Load RF config from EEPROM (if any exists)
   
   if (rf_whitening)
   {
@@ -247,6 +250,7 @@ void setup()
 
 void loop()             
 {
+  static double E1 = 0.0, E2 = 0.0, E3 = 0.0, E4 = 0.0;                // Sketch's own value to use when a.c. fails.
   getCalibration();
   
   if (EmonLibCM_Ready())   
@@ -265,18 +269,40 @@ void loop()
     // Apparent Power: EmonLibCM_getApparentPower(ch)
     // Power Factor:   EmonLibCM_getPF(ch)
     
-    emontx.P1 = EmonLibCM_getRealPower(0); 
-    emontx.E1 = EmonLibCM_getWattHour(0); 
 
-    emontx.P2 = EmonLibCM_getRealPower(1); 
-    emontx.E2 = EmonLibCM_getWattHour(1); 
+    if (EmonLibCM_acPresent())
+    {
+      emontx.P1 = EmonLibCM_getRealPower(0); 
+      emontx.E1 = EmonLibCM_getWattHour(0); 
+      E1        = EmonLibCM_getWattHour(0);
+
+      emontx.P2 = EmonLibCM_getRealPower(1); 
+      emontx.E2 = EmonLibCM_getWattHour(1); 
+      E2        = EmonLibCM_getWattHour(1);
+      
+      emontx.P3 = EmonLibCM_getRealPower(2); 
+      emontx.E3 = EmonLibCM_getWattHour(2); 
+      E3        = EmonLibCM_getWattHour(2);
     
-    emontx.P3 = EmonLibCM_getRealPower(2); 
-    emontx.E3 = EmonLibCM_getWattHour(2); 
-  
-    emontx.P4 = EmonLibCM_getRealPower(3); 
-    emontx.E4 = EmonLibCM_getWattHour(3); 
-
+      emontx.P4 = EmonLibCM_getRealPower(3); 
+      emontx.E4 = EmonLibCM_getWattHour(3); 
+      E4        = EmonLibCM_getWattHour(3);
+    }
+    else
+    {
+      emontx.P1 = assumedVrms * EmonLibCM_getIrms(0);       // Alternative calculations for estimated power & energy  
+      emontx.P2 = assumedVrms * EmonLibCM_getIrms(1);       //   when no a.c. voltage is available
+      emontx.P3 = assumedVrms * EmonLibCM_getIrms(2);       // Alternative calculations for estimated power & energy  
+      emontx.P4 = assumedVrms * EmonLibCM_getIrms(3);       //   when no a.c. voltage is available
+      E1       += assumedVrms * EmonLibCM_getIrms(0) * EmonLibCM_getDatalog_period()/3600.0;
+      emontx.E1 = E1 + 0.5;                                        // rounded value
+      E2       += assumedVrms * EmonLibCM_getIrms(1) * EmonLibCM_getDatalog_period()/3600.0;
+      emontx.E2 = E2 + 0.5;                                        // rounded value
+      E3       += assumedVrms * EmonLibCM_getIrms(2) * EmonLibCM_getDatalog_period()/3600.0;
+      emontx.E1 = E3 + 0.5;                                        // rounded value
+      E4       += assumedVrms * EmonLibCM_getIrms(3) * EmonLibCM_getDatalog_period()/3600.0;
+      emontx.E2 = E4 + 0.5;                                        // rounded value
+    }
     emontx.Vrms = EmonLibCM_getVrms() * 100;
     
     emontx.T1 = allTemps[0];
@@ -301,28 +327,26 @@ void loop()
     // ---------------------------------------------------------------------
     // Key:Value format, used by EmonESP & emonhub EmonHubTx3eInterfacer
     // ---------------------------------------------------------------------
-    else
-    {
-      Serial.print(F("MSG:")); Serial.print(emontx.Msg);
-      Serial.print(F(",Vrms:")); Serial.print(emontx.Vrms*0.01);
-      
-      if (CT1) { Serial.print(F(",P1:")); Serial.print(emontx.P1); }
-      if (CT2) { Serial.print(F(",P2:")); Serial.print(emontx.P2); }
-      if (CT3) { Serial.print(F(",P3:")); Serial.print(emontx.P3); }
-      if (CT4) { Serial.print(F(",P4:")); Serial.print(emontx.P4); }
-      
-      if (CT1) { Serial.print(F(",E1:")); Serial.print(emontx.E1); }
-      if (CT2) { Serial.print(F(",E2:")); Serial.print(emontx.E2); }
-      if (CT3) { Serial.print(F(",E3:")); Serial.print(emontx.E3); }
-      if (CT4) { Serial.print(F(",E4:")); Serial.print(emontx.E4); }
-      
-      if (emontx.T1!=30000) { Serial.print(F(",T1:")); Serial.print(emontx.T1*0.01); }
-      if (emontx.T2!=30000) { Serial.print(F(",T2:")); Serial.print(emontx.T2*0.01); }
-      if (emontx.T3!=30000) { Serial.print(F(",T3:")); Serial.print(emontx.T3*0.01); }
-  
-      Serial.print(F(",pulse:")); Serial.println(emontx.pulse);  
-      delay(20);
-    }
+    Serial.print(F("MSG:")); Serial.print(emontx.Msg);
+    Serial.print(F(",Vrms:")); Serial.print(emontx.Vrms*0.01);
+    
+    if (CT1) { Serial.print(F(",P1:")); Serial.print(emontx.P1); }
+    if (CT2) { Serial.print(F(",P2:")); Serial.print(emontx.P2); }
+    if (CT3) { Serial.print(F(",P3:")); Serial.print(emontx.P3); }
+    if (CT4) { Serial.print(F(",P4:")); Serial.print(emontx.P4); }
+    
+    if (CT1) { Serial.print(F(",E1:")); Serial.print(emontx.E1); }
+    if (CT2) { Serial.print(F(",E2:")); Serial.print(emontx.E2); }
+    if (CT3) { Serial.print(F(",E3:")); Serial.print(emontx.E3); }
+    if (CT4) { Serial.print(F(",E4:")); Serial.print(emontx.E4); }
+    
+    if (emontx.T1!=30000) { Serial.print(F(",T1:")); Serial.print(emontx.T1*0.01); }
+    if (emontx.T2!=30000) { Serial.print(F(",T2:")); Serial.print(emontx.T2*0.01); }
+    if (emontx.T3!=30000) { Serial.print(F(",T3:")); Serial.print(emontx.T3*0.01); }
+
+    Serial.print(F(",pulse:")); Serial.println(emontx.pulse);  
+    delay(20);
+
     digitalWrite(LEDpin,HIGH); delay(50);digitalWrite(LEDpin,LOW);
 
     #ifdef SHOW_CAL
