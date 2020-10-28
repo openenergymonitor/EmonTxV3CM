@@ -58,6 +58,8 @@ const byte version = 20;                                // Firmware version divi
 #include <util/crc16.h>
 #include <OneWire.h>
 
+#define MAX_DS18B20 3
+
 enum rfband {RF12_433MHZ = 1, RF12_868MHZ, RF12_915MHZ }; // frequency band.
 
 byte RF_freq = RF12_433MHZ;                             // Frequency of radio module can be RF12_433MHZ, RF12_868MHZ or RF12_915MHZ. 
@@ -71,13 +73,13 @@ typedef struct {
     unsigned long Msg;
     int Vrms,P1,P2,P3,P4; 
     long E1,E2,E3,E4; 
-    int T1,T2,T3;
+    int T[MAX_DS18B20];
     unsigned long pulse;
 } PayloadTX;
 PayloadTX emontx;                                       // create an instance
 static void showString (PGM_P s);
  
-DeviceAddress allAddresses[3];                          // Array to receive temperature sensor addresses
+DeviceAddress allAddresses[MAX_DS18B20];                // Array to receive temperature sensor addresses
 /*   Example - how to define temperature sensors, prevents an automatic search
 DeviceAddress allAddresses[] = {       
     {0x28, 0x81, 0x43, 0x31, 0x7, 0x0, 0xFF, 0xD9}, 
@@ -86,7 +88,7 @@ DeviceAddress allAddresses[] = {
 };
 */
 
-int allTemps[3];                                        // Array to receive temperature measurements
+int allTemps[MAX_DS18B20];                              // Array to receive temperature measurements
 
 //----------------------------emonTx V3 Settings - Shared with config.ino------------------------
 float i1Cal = 90.9;         // (2000 turns / 22 Ohm burden) = 90.9
@@ -240,7 +242,7 @@ void setup()
   EmonLibCM_setTemperatureResolution(11);                  // Resolution in bits, allowed values 9 - 12. 11-bit resolution, reads to 0.125 degC
   EmonLibCM_setTemperatureAddresses(allAddresses);         // Name of array of temperature sensors
   EmonLibCM_setTemperatureArray(allTemps);                 // Name of array to receive temperature measurements
-  EmonLibCM_setTemperatureMaxCount(3);                     // Max number of sensors, limited by wiring and array size.
+  EmonLibCM_setTemperatureMaxCount(MAX_DS18B20);           // Max number of sensors, limited by wiring and array size.
   
   EmonLibCM_TemperatureEnable(temp_enable);  
   EmonLibCM_Init();                                        // Start continuous monitoring.
@@ -305,9 +307,9 @@ void loop()
     }
     emontx.Vrms = EmonLibCM_getVrms() * 100;
     
-    emontx.T1 = allTemps[0];
-    emontx.T2 = allTemps[1];
-    emontx.T3 = allTemps[2];
+    for (int n=0; n<MAX_DS18B20; n++) {
+        emontx.T[n] = allTemps[n];
+    }
 
     emontx.pulse = EmonLibCM_getPulseCount();
     
@@ -340,9 +342,14 @@ void loop()
     if (CT3) { Serial.print(F(",E3:")); Serial.print(emontx.E3); }
     if (CT4) { Serial.print(F(",E4:")); Serial.print(emontx.E4); }
     
-    if (emontx.T1!=30000) { Serial.print(F(",T1:")); Serial.print(emontx.T1*0.01); }
-    if (emontx.T2!=30000) { Serial.print(F(",T2:")); Serial.print(emontx.T2*0.01); }
-    if (emontx.T3!=30000) { Serial.print(F(",T3:")); Serial.print(emontx.T3*0.01); }
+    for (int n=0; n<MAX_DS18B20; n++) {
+        if (emontx.T[n]!=30000) { 
+            Serial.print(F(",T")); 
+            Serial.print(n);
+            Serial.print(F(":"));
+            Serial.print(emontx.T[n]*0.01); 
+        }
+    }
 
     Serial.print(F(",pulse:")); Serial.println(emontx.pulse);  
     delay(20);
