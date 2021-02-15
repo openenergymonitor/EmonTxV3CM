@@ -299,9 +299,9 @@ void loop()
       E2       += assumedVrms * EmonLibCM_getIrms(1) * EmonLibCM_getDatalog_period()/3600.0;
       emontx.E2 = E2 + 0.5;                                        // rounded value
       E3       += assumedVrms * EmonLibCM_getIrms(2) * EmonLibCM_getDatalog_period()/3600.0;
-      emontx.E1 = E3 + 0.5;                                        // rounded value
+      emontx.E3 = E3 + 0.5;                                        // rounded value
       E4       += assumedVrms * EmonLibCM_getIrms(3) * EmonLibCM_getDatalog_period()/3600.0;
-      emontx.E2 = E4 + 0.5;                                        // rounded value
+      emontx.E4 = E4 + 0.5;                                        // rounded value
     }
     emontx.Vrms = EmonLibCM_getVrms() * 100;
     
