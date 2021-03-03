@@ -157,7 +157,7 @@ static void list_calibration(void)
   Serial.print(RF_freq == RF12_433MHZ ? 433 : 
                RF_freq == RF12_868MHZ ? 868 :
                RF_freq == RF12_915MHZ ? 915 : 0);
-  Serial.print(F(" MHz\n\n"));
+  Serial.print(F(" MHz\r\n"));
  
   Serial.println(F("Calibration:"));
   Serial.print(F("vCal = ")); Serial.println(vCal);
@@ -175,7 +175,7 @@ static void list_calibration(void)
   Serial.print(F("pulse period = ")); Serial.println(pulse_period);
   Serial.print(F("temp_enable = ")); Serial.println(temp_enable);
   printTemperatureSensorAddresses();
-  Serial.print(rf_whitening ? (rf_whitening ==1 ? "RF on":"RF whitened"):"RF off"); Serial.print("\n");
+  Serial.print(rf_whitening ? (rf_whitening ==1 ? "RF on":"RF whitened"):"RF off"); Serial.print("\r\n");
 }
 
 static void save_config()
