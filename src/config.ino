@@ -174,7 +174,6 @@ static void list_calibration(void)
   Serial.print(F("pulses = ")); Serial.println(pulse_enable);
   Serial.print(F("pulse period = ")); Serial.println(pulse_period);
   Serial.print(F("temp_enable = ")); Serial.println(temp_enable);
-  printTemperatureSensorAddresses();
   Serial.print(rf_whitening ? (rf_whitening ==1 ? "RF on":"RF whitened"):"RF off"); Serial.print("\n");
 }
 

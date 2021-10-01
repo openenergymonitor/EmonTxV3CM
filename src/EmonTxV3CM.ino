@@ -21,6 +21,7 @@ v1.7: Check radio channel is clear before transmit
 v1.8: PayloadTx.E1 etc were unsigned long. 
 v1.9: Unused variables removed.
 v2.0: Power & energy calcs using "Assumed Vrms" added, serial output was switched off when rf output is on.
+v2.1: Fix temperature sensor status in serial print
 
 
 emonhub.conf node decoder (nodeid is 15 when switch is off, 16 when switch is on)
@@ -40,7 +41,7 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 #include <avr/wdt.h>
 
-const byte version = 20;                                // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 21;                                // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
 #define DEBUG                                           // Debug level print out
@@ -245,7 +246,7 @@ void setup()
   EmonLibCM_TemperatureEnable(temp_enable);  
   EmonLibCM_Init();                                        // Start continuous monitoring.
   emontx.Msg = 0;
-  
+  printTemperatureSensorAddresses();
 }
 
 void loop()             
