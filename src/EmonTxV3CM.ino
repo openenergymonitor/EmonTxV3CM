@@ -21,7 +21,9 @@ v1.7: Check radio channel is clear before transmit
 v1.8: PayloadTx.E1 etc were unsigned long. 
 v1.9: Unused variables removed.
 v2.0: Power & energy calcs using "Assumed Vrms" added, serial output was switched off when rf output is on.
-v2.1: Fix temperature sensor status in serial print
+v2.1: Factory test transmission moved to Grp 1 to avoid interference with recorded data at power-up.  [RW - 30/1/21]
+v2.1 (duplicate): printTemperatureSensorAddresses() was inside list_calibration() - reason not recorded [G.Hudson 23/12/21]
+v2.3: The two v2.1 versions merged [RW - 9/3/22]
 
 
 emonhub.conf node decoder (nodeid is 15 when switch is off, 16 when switch is on)
@@ -41,7 +43,7 @@ copy the following in to emonhub.conf:
 #include <Arduino.h>
 #include <avr/wdt.h>
 
-const byte version = 21;                                // Firmware version divide by 10 to get version number e,g 05 = v0.5
+const byte version = 23;                                // Firmware version divide by 10 to get version number e,g 05 = v0.5
 
 // Comment/Uncomment as applicable
 #define DEBUG                                           // Debug level print out
@@ -51,7 +53,7 @@ const byte version = 21;                                // Firmware version divi
 #define RFMSELPIN 10                                    // RFM pins
 #define RFMIRQPIN 2                                     // RFM pins
 #define RFPWR 0x99                                      // RFM Power setting - see rfm.ino for more
-
+#define FACTORYTESTGROUP 1                              // R.F. group for factory test only
 #include "emonLibCM.h"
 
 #include <Wire.h>                                       // Required for RFM & temperature measurement
@@ -184,7 +186,7 @@ void setup()
 
   if (rf_whitening)
   {
-    rfm_init(RF_freq);                                                           // initialize RFM
+    rfm_init(RF_freq);                                                    // initialize RFM
     for (int i=10; i>=0; i--)                                             // Send RF test sequence (for factory testing)
     {
       emontx.P1=i;
@@ -195,7 +197,7 @@ void setup()
           for (byte i = 0, *p = (byte *)&tmp; i < sizeof tmp; i++, p++)
               *p ^= (byte)WHITENING;
       }
-      rfm_send((byte *)&tmp, sizeof(tmp), networkGroup, nodeID, busyThreshold, busyTimeout);
+      rfm_send((byte *)&tmp, sizeof(tmp), FACTORYTESTGROUP, nodeID, busyThreshold, busyTimeout);
       delay(100);
     }
     emontx.P1=0;
@@ -245,13 +247,14 @@ void setup()
   
   EmonLibCM_TemperatureEnable(temp_enable);  
   EmonLibCM_Init();                                        // Start continuous monitoring.
-  emontx.Msg = 0;
   printTemperatureSensorAddresses();
+  emontx.Msg = 0;
+  
 }
 
 void loop()             
 {
-  static double E1 = 0.0, E2 = 0.0, E3 = 0.0, E4 = 0.0;                // Sketch's own value to use when a.c. fails.
+  static double E1 = 0.0, E2 = 0.0, E3 = 0.0, E4 = 0.0;    // Sketch's own value to use when a.c. fails.
   getCalibration();
   
   if (EmonLibCM_Ready())   
