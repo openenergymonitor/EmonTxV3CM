@@ -1,4 +1,6 @@
 /*
+ 
+Configuration file for EmonTxV3CM.ino - V2.3 
 
 EEPROM layout
 
@@ -430,6 +432,7 @@ void getCalibration(void)
           
       case 'l':
         list_calibration(); // print the calibration values
+        printTemperatureSensorAddresses();        
       break;
           
       case 'm' :
